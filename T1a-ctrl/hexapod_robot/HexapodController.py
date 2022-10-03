@@ -51,7 +51,7 @@ class HexapodController:
             cmd_msg.linear.x = dst_to_target
             cmd_msg.angular.z = C_TURNING_SPEED*diff_h
             #print("\n\033[F\033[F\033[F")
-            print("Dst to target: ",dst_to_target)#, "\nGoal Position: ", goal.position[0], goal.position[1], goal.position[2], "\nCurrent Position: ", odometry.pose.position[0], odometry.pose.position[1], odometry.pose.position[2])
+            #print("Dst to target: ",dst_to_target)#, "\nGoal Position: ", goal.position[0], goal.position[1], goal.position[2], "\nCurrent Position: ", odometry.pose.position[0], odometry.pose.position[1], odometry.pose.position[2])
         return cmd_msg     
         # END OF OUR CODE WEEK 1    
 
@@ -94,7 +94,7 @@ class HexapodController:
             repulsive_force = 1/min_left - 1/min_right
             cmd_msg.angular.z += C_AVOID_SPEED*repulsive_force
             #print("\n\n\n\n\033[F\033[F\033[F\033[F\033[F\033[F\033[F\033[F\033[F") # Jump 5 lines up
-            print("Number of meassured data: ", length, "\nLeft_min_value: ", min_left, "\nRight_min_value: ", min_right, "\nRepulsive_force: ", repulsive_force)
+            #print("Number of meassured data: ", length, "\nLeft_min_value: ", min_left, "\nRight_min_value: ", min_right, "\nRepulsive_force: ", repulsive_force)
             
         return cmd_msg
         # END OF OUR CODE WEEK 2
