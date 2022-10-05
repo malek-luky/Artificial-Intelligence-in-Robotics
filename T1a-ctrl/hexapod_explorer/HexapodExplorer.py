@@ -28,6 +28,7 @@ class HexapodExplorer:
         pass
 
     ### START OF CUSTOM FUNCTIONS ###
+
     def bresenham_line(self, start, goal):
         """Bresenham's line algorithm
         Args:
@@ -101,7 +102,8 @@ class HexapodExplorer:
         p_z_mi_free = 1-p_z_mi_occ
         p_mi = (p_z_mi_occ*P_mi)/((p_z_mi_occ*P_mi)+(p_z_mi_free*(1-P_mi)))   
         return min(p_mi, 0.95) #never let p_mi get to 1
-        ### END OF CUSTOM FUNCTIONS ###
+    
+    ### END OF CUSTOM FUNCTIONS ###
 
     def fuse_laser_scan(self, grid_map_update, laser_scan, odometry):
         """ Method to fuse the laser scan data sampled by the robot with a given 
@@ -168,8 +170,8 @@ class HexapodExplorer:
                 Transfer the points from the world coordinates to the map coordinates
                 '''
                 point_x_map, point_y_map = self.world_to_map(point_x_global, point_y_global, grid_map_update)
-                point_x_map = max(min(point_x_map, grid_map_update.width),0) #easy version
-                point_y_map = max(min(point_y_map, grid_map_update.height),0) #easy version
+                point_x_map = max(min(point_x_map, grid_map_update.width-1),0) #easy version
+                point_y_map = max(min(point_y_map, grid_map_update.height-1),0) #easy version
                 #plt.scatter(point_x_map, point_y_map)
 
                 '''
