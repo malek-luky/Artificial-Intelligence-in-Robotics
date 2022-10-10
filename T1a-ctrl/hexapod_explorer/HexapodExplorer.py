@@ -114,7 +114,7 @@ class HexapodExplorer:
         new_image = copy.deepcopy(image)
         for i in range(y-size+1):
             for j in range(x-size+1):
-                new_image[i+int(size/2)][j+int(size/2)] = np.max(image[i:i+size, j:j+size]) 
+                new_image[i+round(size/2)][j+round(size/2)] = np.max(image[i:i+size, j:j+size]) 
         return new_image
 
     def distance(self, start, end):
@@ -139,6 +139,7 @@ class HexapodExplorer:
         while coordinates != start:
             coordinates = came_from.get(coordinates)
             pose = self.get_pose_from_coordinates(coordinates, resolution)
+            #pose.position.z.round(1)
             path.poses.insert(0,pose)
         return path
 
@@ -158,15 +159,15 @@ class HexapodExplorer:
         '''
         Return the coordinates of the pose
         '''
-        return (int(pose.position.x/resolution), int(pose.position.y/resolution))
+        return (round(pose.position.x/resolution), round(pose.position.y/resolution))
 
     def get_pose_from_coordinates(self, coordinates, resolution):
         '''
         Return the pose from the coordinates
         '''
         pose = Pose()
-        pose.position.x = coordinates[0] * resolution
-        pose.position.y = coordinates[1] * resolution
+        pose.position.x = round(coordinates[0] * resolution,1)
+        pose.position.y = round(coordinates[1] * resolution,1) # ROUND TO 1 DECIMAL
         return pose
 
 
@@ -217,16 +218,16 @@ class HexapodExplorer:
 
     def bresenham_line(self, path_simple, path,grid_map):
         x2, y2 = self.get_coordinates_from_pose(path_simple, grid_map.resolution)
+        
         x1, y1 = self.get_coordinates_from_pose(path, grid_map.resolution)
-        #print(x1,y1,x2,y2)
         path_ret = []
         max_diff = max(abs(x2 - x1), abs(y2 - y1))
         x_slope = (x2 - x1)/max_diff
         y_slope = (y2 - y1)/max_diff
 
-        for i in range(max_diff+1):
-            x = int(x1 + x_slope*i)
-            y = int(y1 + y_slope*i)
+        for i in range(max_diff):
+            x = round(x2 - x_slope*i)
+            y = round(y2 - y_slope*i)
             path_ret.append((x,y))
         return path_ret
 
@@ -240,7 +241,13 @@ class HexapodExplorer:
                 return True
         return False
 
-
+    def plot_graph(self, grid_map):
+        fig, ax = plt.subplots()
+        grid_map.plot(ax)
+        plt.xlabel('x[m]')
+        plt.ylabel('y[m]')
+        plt.axis('square')
+        plt.show()
     ### END OF CUSTOM FUNCTIONS ###
 
     def fuse_laser_scan(self, grid_map, laser_scan, odometry):
@@ -363,10 +370,11 @@ class HexapodExplorer:
         # Filter all free areas
         grid_map_grow.data[grid_map_grow.data < 0.5] = 0
         #Filter cells close to obstacles
-        kernel_size =int(robot_size/grid_map_grow.resolution)
+        kernel_size =round(robot_size/grid_map_grow.resolution)
         grid_map_grow.data = self.convolution2d(grid_map_grow.data, kernel_size)
 
         # END OF WEEK 4 CODE PART 1
+        #self.plot_graph(grid_map_grow)
         return grid_map_grow
 
 
@@ -391,7 +399,6 @@ class HexapodExplorer:
         
         #add the goal pose
         #path.poses.append(goal)
-
         return path
 
     def simplify_path(self, grid_map, path):
@@ -404,12 +411,23 @@ class HexapodExplorer:
         """
         # if grid_map == None or path == None:
         #     return None
- 
         path_simple = Path()
         #add the start pose
         path_simple.poses.append(path.poses[0])
         
-        # START OF WEEK 4 CODE PART 3       
+        # START OF WEEK 4 CODE PART 3
+
+        # #ULTIMATE TEST
+        # test1 = Pose()
+        # test2 = Pose()
+        # test1.position.x = 2.9
+        # test1.position.y = 4.8
+        # test2.position.x = 2.0
+        # test2.position.y = 6.1
+        # line = self.bresenham_line(test1, test2 ,grid_map)
+        # print(line)
+        # self.collision(line, grid_map) #there is no collision
+               
         #iterate through the path and simplify the path
         i = 1
         while path_simple.poses[-1] != path.poses[-1]: #until the goal is not reached
@@ -421,7 +439,7 @@ class HexapodExplorer:
                 # if pose.position.x==previous_pose.position.x and pose.position.y==previous_pose.position.y:
                 #     continue
                 result_collision = self.collision(self.bresenham_line(previous_pose, pose ,grid_map), grid_map) #there is no collision
-                #print(previous_pose.position.x, previous_pose.position.y, pose.position.x, pose.position.y, result_collision)
+                print(previous_pose.position.x, previous_pose.position.y, pose.position.x, pose.position.y, result_collision)
                 if result_collision == False:
                     temp_pose = pose
                     i+=1

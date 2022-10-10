@@ -60,4 +60,5 @@ if __name__=="__main__":
         plt.xlabel('x[m]')
         plt.ylabel('y[m]')
         plt.axis('square')
+        plt.grid()
         plt.show()
