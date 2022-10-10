@@ -22,6 +22,12 @@ import skimage.measure
 import collections
 import heapq
 
+# CUSTOM IMPORT
+import sys
+import heapq
+np.set_printoptions(threshold=sys.maxsize) # print full numpy array
+# END OF CUSTOM IMPORT
+
 class HexapodExplorer:
 
     def __init__(self):
@@ -103,9 +109,141 @@ class HexapodExplorer:
         p_mi = (p_z_mi_occ*P_mi)/((p_z_mi_occ*P_mi)+(p_z_mi_free*(1-P_mi)))   
         return min(p_mi, 0.95) #never let p_mi get to 1
     
+    def convolution2d(self, image, size):
+        y, x = image.shape
+        new_image = copy.deepcopy(image)
+        for i in range(y-size+1):
+            for j in range(x-size+1):
+                new_image[i+int(size/2)][j+int(size/2)] = np.max(image[i:i+size, j:j+size]) 
+        return new_image
+
+    def distance(self, start, end):
+        '''
+        Return the distance from the point A to the point B
+        '''
+        (x1, y1) = start
+        (x2, y2) = end
+        return (abs(x1 - x2) + abs(y1 - y2))
+
+    def format_path(self, path, came_from, resolution, start, goal):
+        '''
+        Return the path as requested in assignment as a list
+        of positions[(x1, y1), (x2, y2), ...] At the moment the
+        path is stored as the dicionary with at the format {(pos1):(pos2),..}
+        and if you want to find the final path, you have to go backward,
+        in other words start at the goal and than ask, "how I get there" till
+        we will not reach the starting point
+        '''
+        
+        coordinates = came_from.get(goal)
+        while coordinates != start:
+            coordinates = came_from.get(coordinates)
+            pose = self.get_pose_from_coordinates(coordinates, resolution)
+            path.poses.insert(0,pose)
+        return path
+
+    def neighbors_finder(self, current_pos, grid_map):
+        '''
+        Return the list of the neighbors of the current position
+        '''
+        neighbors = []
+        (x, y) = current_pos
+        for i in range(-1, 2):
+            for j in range(-1, 2):
+                if (i, j) != (0, 0) and grid_map.data[y +j,x +i]==0: # magic why indexes are switched
+                    neighbors.append((x + i, y + j))
+        return neighbors
+
+    def get_coordinates_from_pose(self, pose, resolution):
+        '''
+        Return the coordinates of the pose
+        '''
+        return (int(pose.position.x/resolution), int(pose.position.y/resolution))
+
+    def get_pose_from_coordinates(self, coordinates, resolution):
+        '''
+        Return the pose from the coordinates
+        '''
+        pose = Pose()
+        pose.position.x = coordinates[0] * resolution
+        pose.position.y = coordinates[1] * resolution
+        return pose
+
+
+    def a_star(self, grid_map, path, start_pose, goal_pose):
+        '''
+        Generates the path. The method returns a list of coordinates for the
+        path. It must start with the starting position and end at the goal
+        position [(x1, y1), (x2, y2), … ]. If there is no path, it should
+        return None.
+        '''
+        
+        print("Starting A* algorithm")
+        frontier = list()
+        start = self.get_coordinates_from_pose(start_pose, grid_map.resolution)
+        goal = self.get_coordinates_from_pose(goal_pose, grid_map.resolution)
+        heapq.heappush(frontier, (0, start))
+        cost_so_far = dict()    # {(x1,y1):cost1, (x2,y2):cost2, ..}
+        cost_so_far[start] = 0
+        came_from = dict()      # {(0, 0):None, (1, 2):(0, 1), ...}
+        came_from[start] = None
+
+        while frontier:         # while not empty:
+            current_pos = heapq.heappop(frontier)[1]
+
+            if current_pos == goal:
+                print("goal reached")
+                break
+            
+            # neighbors = [[(x1, y1), [(x2, y2), cost], ... ]
+            neighbors = self.neighbors_finder(current_pos, grid_map)
+            # print(current_pos)
+            # print(neighbors)
+            
+            for next_pos in neighbors:
+                new_cost = cost_so_far.get(current_pos) + 1 # every step costs 1
+                if next_pos not in cost_so_far or new_cost < cost_so_far.get(next_pos):
+                    cost_so_far[next_pos] = new_cost
+                    priority = new_cost + self.distance(next_pos, goal)
+                    #print(1, new_cost, self.distance(next_pos, goal), priority)
+                    heapq.heappush(frontier, (priority, next_pos))
+                    came_from[next_pos] = current_pos
+            # self.environment.render()  # show enviroment's GUI
+        
+        if current_pos == goal:
+            return self.format_path(path, came_from, grid_map.resolution, start, goal)
+        else:
+            return None
+
+    def bresenham_line(self, path_simple, path,grid_map):
+        x2, y2 = self.get_coordinates_from_pose(path_simple, grid_map.resolution)
+        x1, y1 = self.get_coordinates_from_pose(path, grid_map.resolution)
+        #print(x1,y1,x2,y2)
+        path_ret = []
+        max_diff = max(abs(x2 - x1), abs(y2 - y1))
+        x_slope = (x2 - x1)/max_diff
+        y_slope = (y2 - y1)/max_diff
+
+        for i in range(max_diff+1):
+            x = int(x1 + x_slope*i)
+            y = int(y1 + y_slope*i)
+            path_ret.append((x,y))
+        return path_ret
+
+    def collision(self, path, grid_map):
+        """
+        Return True if collision
+        Return False if not
+        """
+        for (x,y) in path:
+            if grid_map.data[y,x] != 0:
+                return True
+        return False
+
+
     ### END OF CUSTOM FUNCTIONS ###
 
-    def fuse_laser_scan(self, grid_map_update, laser_scan, odometry):
+    def fuse_laser_scan(self, grid_map, laser_scan, odometry):
         """ Method to fuse the laser scan data sampled by the robot with a given 
             odometry into the probabilistic occupancy grid map
         Args:
@@ -115,7 +253,7 @@ class HexapodExplorer:
         Returns:
             grid_map_update: OccupancyGrid - gridmap updated with the laser scan data
         """
-        grid_map_update = copy.deepcopy(grid_map_update)
+        grid_map_update = copy.deepcopy(grid_map)
 
         # START OF OUR CODE WEEK 3
         # following this task steps on courseware: https://cw.fel.cvut.cz/wiki/courses/uir/hw/t1c-map
@@ -188,12 +326,12 @@ class HexapodExplorer:
             STEP 5
             Update the occupancy grid using the Bayesian update and the simplified laser scan sensor model
             '''
-            data = grid_map_update.data.reshape(grid_map_update.height, grid_map_update.width)
+            # data = grid_map_update.data.reshape(grid_map_update.height, grid_map_update.width)
             for (x,y) in occupied_points:
                 data[y,x] = self.update_occupied(data[y,x])
             for (x,y) in free_points:
                 data[y,x] = self.update_free(data[y,x])
-            grid_map_update.data = data.flatten() #easy version, watch out for dimensions in hard one
+            # grid_map_update.data = data.flatten() #easy version, watch out for dimensions in hard one
             
 
 
@@ -201,11 +339,115 @@ class HexapodExplorer:
 
         return grid_map_update
 
+        
 
-    def find_free_edge_frontiers(self, grid_map_update):
+    def grow_obstacles(self, grid_map, robot_size):
+        """ Method to grow the obstacles to take into account the robot embodiment
+        Args:
+            grid_map: OccupancyGrid - gridmap for obstacle growing
+            robot_size: float - size of the robot
+        Returns:
+            grid_map_grow: OccupancyGrid - gridmap with considered robot body embodiment
+        """
+        grid_map_grow = copy.deepcopy(grid_map)
+
+     
+
+        # START OF WEEK 4 CODE PART 1
+        # following this task steps on courseware: https://cw.fel.cvut.cz/wiki/courses/uir/hw/t1d-growth
+
+        # Filter all obstacles
+        grid_map_grow.data[grid_map_grow.data > 0.5] = 1
+        # Filter all unknown arres
+        grid_map_grow.data[grid_map_grow.data == 0.5] = 1
+        # Filter all free areas
+        grid_map_grow.data[grid_map_grow.data < 0.5] = 0
+        #Filter cells close to obstacles
+        kernel_size =int(robot_size/grid_map_grow.resolution)
+        grid_map_grow.data = self.convolution2d(grid_map_grow.data, kernel_size)
+
+        # END OF WEEK 4 CODE PART 1
+        return grid_map_grow
+
+
+    def plan_path(self, grid_map, start, goal):
+        """ Method to plan the path from start to the goal pose on the grid
+        Args:
+            grid_map: OccupancyGrid - gridmap for obstacle growing
+            start: Pose - robot start pose
+            goal: Pose - robot goal pose
+        Returns:
+            path: Path - path between the start and goal Pose on the map
+        """
+
+        path = Path()
+
+        #add the start pose
+        #path.poses.append(start)
+        
+        # START OF WEEK 4 CODE PART 2
+        path = self.a_star(grid_map, path, start, goal)
+        # END OF WEEK 4 CODE PART 2
+        
+        #add the goal pose
+        #path.poses.append(goal)
+
+        return path
+
+    def simplify_path(self, grid_map, path):
+        """ Method to simplify the found path on the grid
+        Args:
+            grid_map: OccupancyGrid - gridmap for obstacle growing
+            path: Path - path to be simplified
+        Returns:
+            path_simple: Path - simplified path
+        """
+        # if grid_map == None or path == None:
+        #     return None
+ 
+        path_simple = Path()
+        #add the start pose
+        path_simple.poses.append(path.poses[0])
+        
+        # START OF WEEK 4 CODE PART 3       
+        #iterate through the path and simplify the path
+        i = 1
+        while path_simple.poses[-1] != path.poses[-1]: #until the goal is not reached
+            #find the connected segment
+            previous_pose = path_simple.poses[-1]
+            no_col = False
+            for pose in path.poses[i::]:
+                
+                # if pose.position.x==previous_pose.position.x and pose.position.y==previous_pose.position.y:
+                #     continue
+                result_collision = self.collision(self.bresenham_line(previous_pose, pose ,grid_map), grid_map) #there is no collision
+                #print(previous_pose.position.x, previous_pose.position.y, pose.position.x, pose.position.y, result_collision)
+                if result_collision == False:
+                    temp_pose = pose
+                    i+=1
+                    no_col = True
+                    #the goal is reached
+                    if pose == path.poses[-1]:  
+                        path_simple.poses.append(pose)
+                        break
+            
+                else:#if no_col==True: #there is collision
+                    path_simple.poses.append(temp_pose)
+                    break
+
+        
+        
+        # END OF WEEK 4 CODE PART 3
+        
+        #add the goal pose
+        path_simple.poses.append(path.poses[-1])
+
+        return path_simple
+
+    def find_free_edge_frontiers(self, grid_map):
         """Method to find the free-edge frontiers (edge clusters between the free and unknown areas)
         Args:
-            grid_map_update: OccupancyGrid - gridmap of the environment
+            grid_map: OccupancyGrid - gridmap of the environment
         Returns:
             pose_list: Pose[] - list of selected frontiers
         """
@@ -214,85 +456,25 @@ class HexapodExplorer:
         return None 
 
 
-    def find_inf_frontiers(self, grid_map_update):
+    def find_inf_frontiers(self, grid_map):
         """Method to find the frontiers based on information theory approach
         Args:
-            grid_map_update: OccupancyGrid - gridmap of the environment
+            grid_map: OccupancyGrid - gridmap of the environment
         Returns:
             pose_list: Pose[] - list of selected frontiers
         """
 
         #TODO:[t1e_expl] find the information rich points in the environment
         return None
-
-
-    def grow_obstacles(self, grid_map_update, robot_size):
-        """ Method to grow the obstacles to take into account the robot embodiment
-        Args:
-            grid_map_update: OccupancyGrid - gridmap for obstacle growing
-            robot_size: float - size of the robot
-        Returns:
-            grid_map_update_grow: OccupancyGrid - gridmap with considered robot body embodiment
-        """
-
-        grid_map_update_grow = copy.deepcopy(grid_map_update)
-
-        #TODO:[t1d-plan] grow the obstacles for robot_size
-
-        return grid_map_update_grow
-
-
-    def plan_path(self, grid_map_update, start, goal):
-        """ Method to plan the path from start to the goal pose on the grid
-        Args:
-            grid_map_update: OccupancyGrid - gridmap for obstacle growing
-            start: Pose - robot start pose
-            goal: Pose - robot goal pose
-        Returns:
-            path: Path - path between the start and goal Pose on the map
-        """
-
-        path = Path()
-        #add the start pose
-        path.poses.append(start)
-        
-        #TODO:[t1d-plan] plan the path between the start and the goal Pose
-        
-        #add the goal pose
-        path.poses.append(goal)
-
-        return path
-
-    def simplify_path(self, grid_map_update, path):
-        """ Method to simplify the found path on the grid
-        Args:
-            grid_map_update: OccupancyGrid - gridmap for obstacle growing
-            path: Path - path to be simplified
-        Returns:
-            path_simple: Path - simplified path
-        """
-        if grid_map_update == None or path == None:
-            return None
- 
-        path_simplified = Path()
-        #add the start pose
-        path_simplified.poses.append(path.poses[0])
-        
-        #TODO:[t1d-plan] simplifie the planned path
-        
-        #add the goal pose
-        path_simplified.poses.append(path.poses[-1])
-
-        return path_simplified
  
     ###########################################################################
     #INCREMENTAL Planner
     ###########################################################################
 
-    def plan_path_incremental(self, grid_map_update, start, goal):
+    def plan_path_incremental(self, grid_map, start, goal):
         """ Method to plan the path from start to the goal pose on the grid
         Args:
-            grid_map_update: OccupancyGrid - gridmap for obstacle growing
+            grid_map: OccupancyGrid - gridmap for obstacle growing
             start: Pose - robot start pose
             goal: Pose - robot goal pose
         Returns:
@@ -300,9 +482,9 @@ class HexapodExplorer:
         """
 
         if not hasattr(self, 'rhs'): #first run of the function
-            self.rhs = np.full((grid_map_update.height, grid_map_update.width), np.inf)
-            self.g = np.full((grid_map_update.height, grid_map_update.width), np.inf)
+            self.rhs = np.full((grid_map.height, grid_map.width), np.inf)
+            self.g = np.full((grid_map.height, grid_map.width), np.inf)
 
         #TODO:[t1x-dstar] plan the incremental path between the start and the goal Pose
  
-        return self.plan_path(grid_map_update, start, goal), self.rhs.flatten(), self.g.flatten()
+        return self.plan_path(grid_map, start, goal), self.rhs.flatten(), self.g.flatten()
