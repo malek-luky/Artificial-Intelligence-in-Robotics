@@ -134,13 +134,14 @@ class HexapodExplorer:
         in other words start at the goal and than ask, "how I get there" till
         we will not reach the starting point
         '''
-        
+        path.poses.insert(0,self.get_pose_from_coordinates(goal, resolution)) # Add goal!!
         coordinates = came_from.get(goal)
         while coordinates != start:
-            coordinates = came_from.get(coordinates)
             pose = self.get_pose_from_coordinates(coordinates, resolution)
-            #pose.position.z.round(1)
+            coordinates = came_from.get(coordinates)
             path.poses.insert(0,pose)
+        pose = self.get_pose_from_coordinates(coordinates, resolution)
+        path.poses.insert(0,pose) # Add start!!
         return path
 
     def neighbors_finder(self, current_pos, grid_map):
@@ -183,6 +184,7 @@ class HexapodExplorer:
         frontier = list()
         start = self.get_coordinates_from_pose(start_pose, grid_map.resolution)
         goal = self.get_coordinates_from_pose(goal_pose, grid_map.resolution)
+        print(start,goal)
         heapq.heappush(frontier, (0, start))
         cost_so_far = dict()    # {(x1,y1):cost1, (x2,y2):cost2, ..}
         cost_so_far[start] = 0
@@ -391,7 +393,7 @@ class HexapodExplorer:
         path = Path()
 
         #add the start pose
-        #path.poses.append(start)
+        # path.poses.append(start)
         
         # START OF WEEK 4 CODE PART 2
         path = self.a_star(grid_map, path, start, goal)
