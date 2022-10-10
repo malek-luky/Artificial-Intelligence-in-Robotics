@@ -409,8 +409,8 @@ class HexapodExplorer:
         Returns:
             path_simple: Path - simplified path
         """
-        # if grid_map == None or path == None:
-        #     return None
+        if grid_map == None or path == None:
+            return None
         path_simple = Path()
         #add the start pose
         path_simple.poses.append(path.poses[0])
@@ -439,7 +439,7 @@ class HexapodExplorer:
                 # if pose.position.x==previous_pose.position.x and pose.position.y==previous_pose.position.y:
                 #     continue
                 result_collision = self.collision(self.bresenham_line(previous_pose, pose ,grid_map), grid_map) #there is no collision
-                print(previous_pose.position.x, previous_pose.position.y, pose.position.x, pose.position.y, result_collision)
+                #print(previous_pose.position.x, previous_pose.position.y, pose.position.x, pose.position.y, result_collision)
                 if result_collision == False:
                     temp_pose = pose
                     i+=1
