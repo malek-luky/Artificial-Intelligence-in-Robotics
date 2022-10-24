@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+
 import math
 import time
 import numpy as np
@@ -17,14 +18,13 @@ import matplotlib.pyplot as plt
 import scipy.ndimage as ndimg
 from sklearn.cluster import KMeans
 
-import skimage.measure
-
 import collections
 import heapq
 
 # CUSTOM IMPORT
 import sys
 import heapq
+import skimage.measure as skm
 np.set_printoptions(threshold=sys.maxsize)  # print full numpy array
 # END OF CUSTOM IMPORT
 
@@ -138,8 +138,10 @@ class HexapodExplorer:
         Return the pose from the coordinates
         '''
         pose = Pose()
-        pose.position.x = round(coordinates[0] * resolution, 1)
-        pose.position.y = round(coordinates[1] * resolution, 1)
+        # pose.position.x = round(coordinates[0] * resolution, 1)
+        # pose.position.y = round(coordinates[1] * resolution, 1)
+        pose.position.x = coordinates[0] * resolution
+        pose.position.y = coordinates[1] * resolution
         return pose
 
     def a_star(self, grid_map, path, start_pose, goal_pose):
@@ -215,12 +217,24 @@ class HexapodExplorer:
         """
         Plot the graphs in case error occurs and we want to see the map
         """
+        #fig, ax = plt.subplots()
+        data = grid_map.data.reshape(grid_map.height, grid_map.width)
+
+        # creating a plot
         fig, ax = plt.subplots()
-        grid_map.plot(ax)
+        plt.imshow(data, cmap='viridis')
+        ax = plt.gca()
+        ax.set_ylim(ax.get_ylim()[::-1])
+        plt.colorbar()
+
+        # plotting a plot
         plt.xlabel('x[m]')
         plt.ylabel('y[m]')
-        plt.axis('square')
+        plt.title("pixel_plot")
+
+        # show plot
         plt.show()
+
     ### END OF CUSTOM FUNCTIONS ###
 
     def fuse_laser_scan(self, grid_map, laser_scan, odometry):
@@ -341,13 +355,14 @@ class HexapodExplorer:
         # following this task steps on courseware: https://cw.fel.cvut.cz/wiki/courses/uir/hw/t1d-growth
 
         # Filter all obstacles
-        grid_map_grow.data[grid_map_grow.data > 0.5] = 1 # obstacles
+        grid_map_grow.data[grid_map_grow.data > 0.5] = 1  # obstacles
         # Filter all unknown arres
-        grid_map_grow.data[grid_map_grow.data == 0.5] = 1 # unknown area
+        grid_map_grow.data[grid_map_grow.data == 0.5] = 1  # unknown area
         # Filter all free areas
-        grid_map_grow.data[grid_map_grow.data < 0.5] = 0 # free area
+        grid_map_grow.data[grid_map_grow.data < 0.5] = 0  # free area
         # Filter cells close to obstacle
-        kernel_size = round(robot_size/grid_map_grow.resolution)  # must be even
+        kernel_size = round(
+            robot_size/grid_map_grow.resolution)  # must be even
         r = round(kernel_size)
         kernel = np.fromfunction(lambda x, y: (
             (x-r)**2 + (y-r)**2 < r**2)*1, (2*r+1, 2*r+1), dtype=int).astype(np.uint8)
@@ -402,12 +417,12 @@ class HexapodExplorer:
             no_col = False
             for pose in path.poses[i::]:
                 result_collision = self.collision(self.bresenham_line(
-                    previous_pose, pose, grid_map), grid_map) 
+                    previous_pose, pose, grid_map), grid_map)
                 if result_collision == False:
                     temp_pose = pose
                     i += 1
                     no_col = True
-                    if pose == path.poses[-1]: # goal is reached
+                    if pose == path.poses[-1]:  # goal is reached
                         path_simple.poses.append(pose)
                         break
                 else:
@@ -416,7 +431,7 @@ class HexapodExplorer:
         # END OF WEEK 4 CODE PART 3
 
         # add the goal pose - already addded!!
-        #path_simple.poses.append(path.poses[-1])
+        # path_simple.poses.append(path.poses[-1])
         return path_simple
 
     def find_free_edge_frontiers(self, grid_map):
@@ -427,8 +442,54 @@ class HexapodExplorer:
             pose_list: Pose[] - list of selected frontiers
         """
 
-        # TODO:[t1e_expl] find free-adges and cluster the frontiers
-        return None
+
+        data = copy.deepcopy(grid_map.data.reshape(grid_map.height, grid_map.width))
+        data[data == 0.5] = 10
+
+        mask = np.array([[1, 1, 1], [1, 0, 1], [1, 1, 1]])
+        data_c = ndimg.convolve(data, mask, mode='constant', cval=0.0)
+
+        # Format result
+        frontiers = []
+        for (y, val1) in enumerate(data_c):
+            for (x, val2) in enumerate(val1):
+                if grid_map.data.reshape(grid_map.height, grid_map.width)[(y, x)] < 0.5 and val2 < 50 and val2 >= 10:
+                    data[(y, x)] = 1
+                else:
+                    data[(y, x)] = 0
+        labeled_image, num_labels = skm.label(
+            data, connectivity=2, return_num=True)
+        
+        # Final Labeling
+        cluster = {}
+        for label in range(1, num_labels+1):
+            cluster[label] = []
+
+        for x in range(0, labeled_image.shape[1]):
+            for y in range(0, labeled_image.shape[0]):
+
+                label = labeled_image[y, x]
+                if label != 0:
+                    cluster[label].append((x, y))
+
+        pose_list = []
+
+        for label, items in cluster.items():
+            centroid = (0, 0)
+            for item in items:
+                centroid = (centroid[0]+item[0], centroid[1]+item[1])
+            centroid = (centroid[0]/len(items), centroid[1]/len(items))
+            print(centroid)
+            pose = self.get_pose_from_coordinates(
+                [centroid[0], centroid[1]], grid_map.resolution)
+            pose_list.append(pose)
+
+        #print(pose_list)
+        # self.plot_graph(grid_map)
+        # self.plot_graph(grid_convolved)
+        # self.plot_graph(grid_frontiers)
+
+        return pose_list
 
     def find_inf_frontiers(self, grid_map):
         """Method to find the frontiers based on information theory approach
@@ -437,7 +498,6 @@ class HexapodExplorer:
         Returns:
             pose_list: Pose[] - list of selected frontiers
         """
-
         # TODO:[t1e_expl] find the information rich points in the environment
         return None
 
