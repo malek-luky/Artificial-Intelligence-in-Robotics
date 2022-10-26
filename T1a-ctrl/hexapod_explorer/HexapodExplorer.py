@@ -25,7 +25,58 @@ import heapq
 import sys
 import heapq
 import skimage.measure as skm
+#from queue import PriorityQueue
 np.set_printoptions(threshold=sys.maxsize)  # print full numpy array
+
+
+class PriorityQueue:
+    def __init__(self):
+        self.elements = []
+
+    def empty(self):
+        return len(self.elements) == 0
+
+    def put(self, item, priority):
+        heapq.heappush(self.elements, (priority, item))
+
+    def pop(self):
+        return heapq.heappop(self.elements)[1]
+
+    def top(self):
+        u = self.elements[0]
+        return u[1]
+
+    def topKey(self):
+        u = self.elements[0]
+        return u[0]
+
+    def contains(self, element):
+        ret = False
+        for item in self.elements:
+            if element == item[1]:
+                ret = True
+                break
+        return ret
+
+    def print_elements(self):
+        return self.elements
+
+    def remove(self, element):
+        i = 0
+        for item in self.elements:
+            if element == item[1]:
+                self.elements[i] = self.elements[-1]
+                self.elements.pop()
+                heapq.heapify(self.elements)
+                break
+            i += 1
+
+    def arg(self,value):
+        for item in self.elements:
+            for subitem in item[0]:
+                if value == subitem:
+                    return item[1]
+
 # END OF CUSTOM IMPORT
 
 
@@ -37,12 +88,10 @@ class HexapodExplorer:
     ### START OF CUSTOM FUNCTIONS ###
 
     def world_to_map(self, point_x_global, point_y_global, grid_map):
-        map_origin_x = grid_map.origin.position.x
-        map_origin_y = grid_map.origin.position.y
+        map_origin = np.array([grid_map.origin.position.x, grid_map.origin.position.y])
         map_resolution = grid_map.resolution
-        point_x_map = round((point_x_global-map_origin_x)/map_resolution)
-        point_y_map = round((point_y_global-map_origin_y)/map_resolution)
-        return (point_x_map, point_y_map)
+        point = np.array([point_x_global, point_y_global])
+        return ((point - map_origin) / map_resolution).astype(int)
 
     def update_free(self, P_mi):
         """method to calculate the Bayesian update of the free cell with the current occupancy probability value P_mi 
@@ -169,7 +218,7 @@ class HexapodExplorer:
                 break
 
             # neighbors = [[(x1, y1), [(x2, y2), cost], ... ]
-            neighbors = self.neighbors_finder(current_pos, grid_map)
+            neighbors = self.pred_finder(current_pos, grid_map)
 
             for next_pos in neighbors:
                 new_cost = cost_so_far.get(
@@ -442,8 +491,8 @@ class HexapodExplorer:
             pose_list: Pose[] - list of selected frontiers
         """
 
-
-        data = copy.deepcopy(grid_map.data.reshape(grid_map.height, grid_map.width))
+        data = copy.deepcopy(grid_map.data.reshape(
+            grid_map.height, grid_map.width))
         data[data == 0.5] = 10
 
         mask = np.array([[1, 1, 1], [1, 0, 1], [1, 1, 1]])
@@ -459,7 +508,7 @@ class HexapodExplorer:
                     data[(y, x)] = 0
         labeled_image, num_labels = skm.label(
             data, connectivity=2, return_num=True)
-        
+
         # Final Labeling
         cluster = {}
         for label in range(1, num_labels+1):
@@ -484,22 +533,22 @@ class HexapodExplorer:
                 [centroid[0], centroid[1]], grid_map.resolution)
             pose_list.append(pose)
 
-        #print(pose_list)
+        # print(pose_list)
         # self.plot_graph(grid_map)
         # self.plot_graph(grid_convolved)
         # self.plot_graph(grid_frontiers)
 
         return pose_list
 
-    def find_inf_frontiers(self, grid_map):
-        """Method to find the frontiers based on information theory approach
-        Args:
-            grid_map: OccupancyGrid - gridmap of the environment
-        Returns:
-            pose_list: Pose[] - list of selected frontiers
-        """
-        # TODO:[t1e_expl] find the information rich points in the environment
-        return None
+    # def find_inf_frontiers(self, grid_map):
+    #     """Method to find the frontiers based on information theory approach
+    #     Args:
+    #         grid_map: OccupancyGrid - gridmap of the environment
+    #     Returns:
+    #         pose_list: Pose[] - list of selected frontiers
+    #     """
+    #     # TODO:[t1e_expl] find the information rich points in the environment
+    #     return None
 
     ###########################################################################
     # INCREMENTAL Planner
@@ -513,12 +562,160 @@ class HexapodExplorer:
             goal: Pose - robot goal pose
         Returns:
             path: Path - path between the start and goal Pose on the map
-        """
+        """       
+        start = tuple(self.world_to_map(start.position.x, start.position.y, grid_map))
+        goal = tuple(self.world_to_map(goal.position.x, goal.position.y, grid_map))
 
         if not hasattr(self, 'rhs'):  # first run of the function
             self.rhs = np.full((grid_map.height, grid_map.width), np.inf)
             self.g = np.full((grid_map.height, grid_map.width), np.inf)
+            self.gridmap_data = copy.deepcopy(grid_map.data.reshape(
+                grid_map.height, grid_map.width).transpose())
 
-        # TODO:[t1x-dstar] plan the incremental path between the start and the goal Pose
+            # Main init
+            self.initialize(goal) # only in the first cycle
+            self.compute_shortest_path(start, goal)
 
-        return self.plan_path(grid_map, start, goal), self.rhs.flatten(), self.g.flatten()
+        return self.plan_path_Dstar(grid_map, start, goal), self.rhs.flatten(), self.g.flatten()
+
+# D-Star
+
+#### HELP FUNCTIONS #####
+    def c(self, From, To):
+        """
+        returns the value of an edge from From to To
+        """
+        if self.gridmap_data[To] == 1:
+            return np.inf
+        else:
+            return np.sqrt((From[0] - To[0]) ** 2 + (From[1] - To[1]) ** 2)
+
+    def min_succ(self, u):
+        """
+        returns the successor with the lowest rhs value
+        u(int,int) = current coordinate
+        """
+        ret = np.inf
+        for s_ in self.pred(u):
+            ret = min(ret, self.c(u, s_) + self.g[s_])
+        return ret
+
+    def pred(self, coord):
+        """
+        returns list of all 8 neighbors around the coord
+        """
+        ret = []
+        coord = np.array(coord)
+        neighbor_list = [coord+[1,0], coord+[0,1], coord+[-1,0], coord+[0,-1], coord+[1,1], coord+[-1,-1], coord+[1,-1], coord+[-1,+1]]
+        for neighbor in neighbor_list:
+            neighbor = tuple(neighbor)
+            if 0 <= neighbor[0] < len(self.gridmap_data) and 0 <= neighbor[1] < len(self.gridmap_data[1]) and self.gridmap_data[neighbor] == 0:
+                ret.append(neighbor)
+        return ret
+
+    def scan_graph(self, grid_map, data):
+        ret_list = list()
+        for x in range(0, grid_map.width):
+            for y in range(0, grid_map.height):
+                if data[x, y] != self.gridmap_data[x, y]:
+                    ret_list.append((x, y))
+        return ret_list
+
+    def format_path_Dstar(self, start, goal):
+        path = Path()
+        pose = Pose()
+        pose.position.x = start[0]+0.5
+        pose.position.y = start[1]+0.5
+        path.poses.append(pose)
+
+        u = start
+        while u != goal:
+            for s in self.pred(u):
+                if self.g[s] < self.g[u]:
+                    u = s
+            pose = Pose()
+            pose.position.x = u[0]+0.5
+            pose.position.y = u[1]+0.5
+            path.poses.append(pose)
+        return path
+
+#### ALGORITHM #####
+    def calc_key(self, s):
+        """
+        s = coordinate
+        g(s) = np.full((grid_map.height, grid_map.width), np.inf)
+        rhs(s) = np.full((grid_map.height, grid_map.width), np.inf)
+        np.full(shape, fill_value) = new array of given shape and type, filled with fill_value
+        """
+        # +h(start_s,s) + k_m is chosen heuristic (we use 0)
+        return [min(self.g[s], self.rhs[s]), min(self.g[s], self.rhs[s])]
+
+    def initialize(self, goal):
+        """
+        goal(int, int) = goal position
+        """
+        self.U = PriorityQueue()
+        #self.km= 0 #useless
+        # s is already inf (elaborate g(s) rhs() with np.full np.inf)
+        self.rhs[goal] = 0
+        self.U.put(goal, self.calc_key(goal))
+
+    def update_vertex(self, u, goal):
+        """
+        u(int, int) = current position
+        s_(int,int) = neighbor of u
+        """
+        if u != goal:
+            self.rhs[u] = self.min_succ(u)
+        self.U.remove(u) #removes only if u in U
+        if self.g[u] != self.rhs[u]:
+            self.U.put(u, self.calc_key(u))
+
+    def compute_shortest_path(self, start, goal):
+        """
+        find the shortest path
+        """
+        while not self.U.empty() and self.U.topKey() < self.calc_key(start) or self.rhs[start] != self.g[start]:
+            k_old = self.U.topKey()
+            u = self.U.pop()
+            if k_old < self.calc_key(u):
+                self.U.put(u, self.calc_key(u))
+            elif self.g[u] > self.rhs[u]:
+                self.g[u] = self.rhs[u]
+                for s in self.pred(u):
+                    self.update_vertex(s, goal)
+            else:
+                self.g[u] = np.inf
+                for s in self.pred(u):
+                    self.update_vertex(s, goal)
+                self.update_vertex(u, goal)
+
+    def plan_path_Dstar(self, grid_map, start, goal):
+        """
+        Do the "main" part of the following algorithm
+        https://www.cs.cmu.edu/~maxim/files/dlite_tro05.pdf
+        """   
+        # Init (we need to have "original" data every iteration)
+        data = grid_map.data.reshape(
+            grid_map.height, grid_map.width).transpose()    
+
+        #start = self.U.arg(self.min_succ(start))
+        changed_edges = self.scan_graph(grid_map, data)
+        if changed_edges != []:
+            for edge in changed_edges:
+                x = edge[0]
+                y = edge[1]
+                self.gridmap_data[x, y] = data[x, y] #Update the edge cost
+                for s in self.pred([x, y]):
+                    self.update_vertex(s, goal) #Update vertex U
+            for element in self.U.print_elements():
+                self.U.remove(element[1])
+                self.U.put(element[1], self.calc_key(element[1])) #U.Update(s,calckey)
+            self.compute_shortest_path(start, goal)
+        
+        if self.g[start] == np.inf:
+            print("No path found")
+            return None
+
+        return self.format_path_Dstar(start, goal)
+
