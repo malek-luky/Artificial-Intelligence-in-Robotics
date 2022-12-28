@@ -13,7 +13,7 @@ sys.path.append('hexapod_explorer')
  
 #import hexapod robot and explorer
 import HexapodRobot as hexapod
-import HexapodExplorer_Simon as explorer
+import HexapodExplorer as explorer
 
 #import communication messages
 from messages import *
