@@ -1,0 +1,21 @@
+STARTUP
+/usr/lib/coppelia_sim_edu/coppeliaSim.sh
+cd /mnt/c/Users/Lukas/OneDrive/UIR/T1a-ctrl/
+start simulation in coppelia
+python3 t1x_dstar.py (na windows python .\t3c_map.py)
+
+SECOND PART
+cd /mnt/c/Users/Lukas/OneDrive/UIR/T2a-tspn/
+python3 t2a_tspn.py
+
+ZIP IT
+cd hexapod_explorer && zip HexapodExplorer HexapodExplorer.py && cd ..
+cd data_collection && zip SOMSolver SOMSolver.py && cd ..
+cd data_collection && zip DTSPNSolver DTSPNSolver.py && cd ..
+cd samplingplanner && zip PRMPlanner PRMPlanner.py && cd ..
+cd samplingplanner && zip RRTPlanner RRTPlanner.py && cd ..
+
+BLACK SCREEN BUG
+-export LIBGL_ALWAYS_INDIRECT=0 (bezne bylo 1)
+-export LIBGL_ALWAYS_SOFTWARE=1
+-nepocita to na gui, nestiha to pc
