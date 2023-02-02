@@ -28,6 +28,7 @@ import skimage.measure as skm
 #from queue import PriorityQueue
 np.set_printoptions(threshold=sys.maxsize)  # print full numpy array
 
+MAGIC_NUMBER = 50 #TODO
 
 class PriorityQueue:
     def __init__(self):
@@ -180,7 +181,7 @@ class HexapodExplorer:
         '''
         Return the coordinates of the pose
         '''
-        return (round(pose.position.x/resolution), round(pose.position.y/resolution))
+        return (round(pose.position.x/resolution)+MAGIC_NUMBER, round(pose.position.y/resolution)+MAGIC_NUMBER)
 
     def get_pose_from_coordinates(self, coordinates, resolution):
         '''
@@ -200,10 +201,10 @@ class HexapodExplorer:
         position [(x1, y1), (x2, y2), … ]. If there is no path, it should
         return None.
         '''
-        print("Starting A* algorithm")
         frontier = list()
         start = self.get_coordinates_from_pose(start_pose, grid_map.resolution)
         goal = self.get_coordinates_from_pose(goal_pose, grid_map.resolution)
+        print("ZDE", start, goal)
         heapq.heappush(frontier, (0, start))
         cost_so_far = dict()    # {(x1,y1):cost1, (x2,y2):cost2, ..}
         cost_so_far[start] = 0
@@ -218,7 +219,7 @@ class HexapodExplorer:
                 break
 
             # neighbors = [[(x1, y1), [(x2, y2), cost], ... ]
-            neighbors = self.pred_finder(current_pos, grid_map)
+            neighbors = self.neighbors_finder(current_pos, grid_map)
 
             for next_pos in neighbors:
                 new_cost = cost_so_far.get(
@@ -330,7 +331,7 @@ class HexapodExplorer:
         # i = kolikata vysec z laser scaneru
         # delta = pocet stupnu jedne vysece scaneru
 
-        if laser_scan is not None:
+        if laser_scan is not None and odometry is not None:
             '''
             INITIALIZE VALUES
             '''
@@ -342,7 +343,7 @@ class HexapodExplorer:
             orientation = odometry.pose.orientation.to_Euler()[0]
             free_points = list()
             occupied_points = list()
-            print("X: ", odometry_x, "Y: ", odometry_y, "°: ", orientation)
+            #print("X: ", odometry_x, "Y: ", odometry_y, "°: ", orientation)
 
             for laserscan_sector, laserscan_sector_value in enumerate(laserscan_points):
 
@@ -417,17 +418,21 @@ class HexapodExplorer:
         Returns:
             grid_map_grow: OccupancyGrid - gridmap with considered robot body embodiment
         """
+
+        """
+        UPDATE
+        * use obstacle growing only on obstacles, not uknown areas
+        -> filter all unknown areas moved to the end of the function
+        """
         grid_map_grow = copy.deepcopy(grid_map)
 
         # START OF WEEK 4 CODE PART 1
         # following this task steps on courseware: https://cw.fel.cvut.cz/wiki/courses/uir/hw/t1d-growth
 
         # Filter all obstacles
-        grid_map_grow.data[grid_map_grow.data > 0.5] = 1  # obstacles
-        # Filter all unknown arres
-        grid_map_grow.data[grid_map_grow.data == 0.5] = 1  # unknown area
+        grid_map_grow.data[grid_map.data > 0.5] = 1  # obstacles
         # Filter all free areas
-        grid_map_grow.data[grid_map_grow.data < 0.5] = 0  # free area
+        grid_map_grow.data[grid_map.data <= 0.5] = 0  # free area
         # Filter cells close to obstacle
         kernel_size = round(
             robot_size/grid_map_grow.resolution)  # must be even
@@ -436,6 +441,9 @@ class HexapodExplorer:
             (x-r)**2 + (y-r)**2 < r**2)*1, (2*r+1, 2*r+1), dtype=int).astype(np.uint8)
         grid_map_grow.data = ndimg.convolve(grid_map_grow.data, kernel)
         grid_map_grow.data[grid_map_grow.data > 1] = 1
+
+        # Filter all unknown arres
+        grid_map_grow.data[grid_map.data == 0.5] = 1  # unknown area
         # self.plot_graph(grid_map_grow)
         # END OF WEEK 4 CODE PART 1
         return grid_map_grow
@@ -485,7 +493,9 @@ class HexapodExplorer:
             no_col = False
             for pose in path.poses[i::]:
                 result_collision = self.collision(self.bresenham_line(
-                    previous_pose, pose, grid_map), grid_map)
+                    (previous_pose.position.x,previous_pose.position.y),
+                    (pose.position.x, pose.position.y)),
+                    grid_map)
                 if result_collision == False:
                     temp_pose = pose
                     i += 1
@@ -510,8 +520,8 @@ class HexapodExplorer:
             pose_list: Pose[] - list of selected frontiers
         """
 
-        data = copy.deepcopy(grid_map.data.reshape(
-            grid_map.height, grid_map.width))
+        # START OF MY CODE WEEK 5
+        data = copy.deepcopy(grid_map.data)#.reshape(grid_map.height, grid_map.width))
         data[data == 0.5] = 10
 
         mask = np.array([[1, 1, 1], [1, 0, 1], [1, 1, 1]])
@@ -547,9 +557,9 @@ class HexapodExplorer:
             for item in items:
                 centroid = (centroid[0]+item[0], centroid[1]+item[1])
             centroid = (centroid[0]/len(items), centroid[1]/len(items))
-            print(centroid)
+            #print(centroid)
             pose = self.get_pose_from_coordinates(
-                [centroid[0], centroid[1]], grid_map.resolution)
+                [centroid[0]-MAGIC_NUMBER, centroid[1]-MAGIC_NUMBER], grid_map.resolution)
             pose_list.append(pose)
 
         # print(pose_list)
@@ -558,16 +568,17 @@ class HexapodExplorer:
         # self.plot_graph(grid_frontiers)
 
         return pose_list
+        # END OF MY CODE WEEK 5
 
-    # def find_inf_frontiers(self, grid_map):
-    #     """Method to find the frontiers based on information theory approach
-    #     Args:
-    #         grid_map: OccupancyGrid - gridmap of the environment
-    #     Returns:
-    #         pose_list: Pose[] - list of selected frontiers
-    #     """
-    #     # TODO:[t1e_expl] find the information rich points in the environment
-    #     return None
+    def find_inf_frontiers(self, grid_map):
+        """Method to find the frontiers based on information theory approach
+        Args:
+            grid_map: OccupancyGrid - gridmap of the environment
+        Returns:
+            pose_list: Pose[] - list of selected frontiers
+        """
+        # TODO:[t1e_expl] find the information rich points in the environment
+        return None
 
     ###########################################################################
     # INCREMENTAL Planner
@@ -597,7 +608,7 @@ class HexapodExplorer:
 
         return self.plan_path_Dstar(grid_map, start, goal), self.rhs.flatten(), self.g.flatten()
 
-# D-Star
+# START OF MY CODE WEEK 5 D-Star
 
 #### HELP FUNCTIONS #####
     def c(self, From, To):
@@ -737,3 +748,4 @@ class HexapodExplorer:
             return None
 
         return self.format_path_Dstar(start, goal)
+# END OF MY CODE WEEK 5 D-Star

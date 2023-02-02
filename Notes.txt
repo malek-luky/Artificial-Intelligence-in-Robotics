@@ -1,5 +1,6 @@
 STARTUP
-/usr/lib/coppelia_sim_edu/coppeliaSim.sh
+cat /proc/sys/kernel/threads-max
+/usr/lib/coppelia_sim_edu/coppeliaSim.sh -j 60000
 cd /mnt/c/Users/Lukas/OneDrive/UIR/T1a-ctrl/
 start simulation in coppelia
 python3 t1x_dstar.py (na windows python .\t3c_map.py)
@@ -7,6 +8,28 @@ python3 t1x_dstar.py (na windows python .\t3c_map.py)
 SECOND PART
 cd /mnt/c/Users/Lukas/OneDrive/UIR/T2a-tspn/
 python3 t2a_tspn.py
+
+SEMESTER PROJECT
+cd /mnt/c/Users/Lukas/OneDrive/UIR/Semester_Project/
+python3.8 Explorer.py
+
+week1 - goto - used in trajectory following - hexapod_controller
+week2 - goto_reactive - used in trajectory following - hexapod_controller
+week3 - fuse_laser_scan - used in mapping - hexapod_explorer
+week4 - grow_obstacles + plan_path + simplify - planning - hexapod_explorer
+week5 - Dstar - useless
+week6 - frontier detection - planning find_free_edge_frontiers - hexapodexplorer
+week7
+week8
+week9
+week10
+week11
+week12
+week13
+
+TASK m2
+-krome dynamicke alokace mapy nutno predelat magic number na radku 552
+
 
 ZIP IT
 cd hexapod_explorer && zip HexapodExplorer HexapodExplorer.py && cd ..
@@ -18,4 +41,4 @@ cd samplingplanner && zip RRTPlanner RRTPlanner.py && cd ..
 BLACK SCREEN BUG
 -export LIBGL_ALWAYS_INDIRECT=0 (bezne bylo 1)
 -export LIBGL_ALWAYS_SOFTWARE=1
--nepocita to na gui, nestiha to pc
+-nepocita to na gui, shori mi procesor

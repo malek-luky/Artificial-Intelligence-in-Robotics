@@ -218,7 +218,7 @@ class HexapodExplorer:
                 break
 
             # neighbors = [[(x1, y1), [(x2, y2), cost], ... ]
-            neighbors = self.pred_finder(current_pos, grid_map)
+            neighbors = self.neighbors_finder(current_pos, grid_map)
 
             for next_pos in neighbors:
                 new_cost = cost_so_far.get(
@@ -330,7 +330,7 @@ class HexapodExplorer:
         # i = kolikata vysec z laser scaneru
         # delta = pocet stupnu jedne vysece scaneru
 
-        if laser_scan is not None:
+        if laser_scan is not None and odometry is not None:
             '''
             INITIALIZE VALUES
             '''
@@ -509,7 +509,7 @@ class HexapodExplorer:
         Returns:
             pose_list: Pose[] - list of selected frontiers
         """
-
+        # START OF MY CODE WEEK 5
         data = copy.deepcopy(grid_map.data.reshape(
             grid_map.height, grid_map.width))
         data[data == 0.5] = 10
@@ -558,6 +558,7 @@ class HexapodExplorer:
         # self.plot_graph(grid_frontiers)
 
         return pose_list
+        # END OF MY CODE WEEK 5
 
     # def find_inf_frontiers(self, grid_map):
     #     """Method to find the frontiers based on information theory approach
@@ -597,7 +598,7 @@ class HexapodExplorer:
 
         return self.plan_path_Dstar(grid_map, start, goal), self.rhs.flatten(), self.g.flatten()
 
-# D-Star
+# START OF MY CODE WEEK 5 D-Star
 
 #### HELP FUNCTIONS #####
     def c(self, From, To):
@@ -737,3 +738,4 @@ class HexapodExplorer:
             return None
 
         return self.format_path_Dstar(start, goal)
+# END OF MY CODE WEEK 5 D-Star
