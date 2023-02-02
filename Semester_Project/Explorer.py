@@ -102,7 +102,6 @@ class Explorer:
         # START OF MY CODE necessary init
         # fuse the laser scan   
         while not self.stop:
-            print("mapping")
             self.gridmap = self.explor.fuse_laser_scan(self.gridmap, self.robot.laser_scan_, self.robot.odometry_)
             self.gridmap.data = self.gridmap.data.reshape(self.gridmap.height, self.gridmap.width)
         # END OF MY CODE necessary init
@@ -112,7 +111,7 @@ class Explorer:
         """
         # START OF MY CODE f1 + p1
         while not self.stop:
-            print("planning "
+            print("planning ")
             #obstacle growing (by robot size)
             #p1
             self.gridmap_processed = self.explor.grow_obstacles(self.gridmap, Constants.ROBOT_SIZE)
@@ -128,9 +127,13 @@ class Explorer:
                 for frontier in self.frontiers:
                     print("Start: ", self.start.position.x, self.start.position.y, "Frontier: ", frontier.position.x, frontier.position.y)
                     self.path = self.explor.plan_path(self.gridmap_processed, self.start, frontier)
-                    print(self.path)
+                    self.explor.print_path(self.path) #TODO: print
                     #path simplification
                     self.path_simple = self.explor.simplify_path(self.gridmap_processed, self.path)
+                    
+                    #self.explor.print_path(self.path_simple)
+                    if self.path is not None:
+                        print("len path: ", self.path, "len path simple: ", self.path_simple)
                     if self.path_simple is not None and len(self.path_simple) < shortest_path:
                         self.path = self.path_simple
                         shortest_path = len(self.path_simple)
@@ -143,13 +146,14 @@ class Explorer:
         """ 
         # START OF MY CODE necessary init
         while not self.stop:
-            print("trajectory_following", self.path)
-            if self.robot.navigation_goal is None and self.path is not None:
+            continue
+            #if self.robot.navigation_goal is None and self.path is not None and len(self.path.poses) != 0:
+                #print("trajectory_following")
                 #fetch the new navigation goal
-                nav_goal = self.path.poses.pop(0)
-                #give it to the robot
-                #self.robot.goto(nav_goal) #TODO: which goto to choose?
-                self.robot.goto_reactive(nav_goal)
+                #nav_goal = self.path.poses.pop(0)
+                #print("Goto: ", nav_goal.position.x, nav_goal.position.y)
+                # TODO
+                #self.robot.goto(nav_goal)
         # END OF MY CODE necessary init
  
  
@@ -160,19 +164,25 @@ if __name__ == "__main__":
     ex0.start()
  
     #continuously plot the map, targets and plan (once per second)
-    fig, ax = plt.subplots()
+    fig, (ax0, ax1) = plt.subplots(nrows=2, ncols=1, figsize=(10,5))
     plt.ion()
     while(1):
         plt.cla()
         #plot the gridmap
+        if ex0.gridmap.data is not None:
+            ex0.gridmap.plot(ax0)
         if ex0.gridmap_processed.data is not None:
-            ex0.gridmap_processed.plot(ax)
+            ex0.gridmap_processed.plot(ax1)
         #plot the navigation path
         if ex0.path is not None:
-            ex0.path.plot(ax)
- 
+            ex0.path.plot(ax0)
+            ex0.path.plot(ax1)
+        for frontier in ex0.frontiers:
+            ax0.scatter(frontier.position.x, frontier.position.y)
         plt.xlabel('x[m]')
         plt.ylabel('y[m]')
-        ax.set_aspect('equal', 'box')
+        ax0.set_aspect('equal', 'box')
+        ax1.set_aspect('equal', 'box')
         plt.show()
         plt.pause(1)#pause for 1s
+        time.sleep(1)

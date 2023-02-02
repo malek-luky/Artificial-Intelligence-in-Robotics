@@ -11,7 +11,7 @@ python3 t2a_tspn.py
 
 SEMESTER PROJECT
 cd /mnt/c/Users/Lukas/OneDrive/UIR/Semester_Project/
-python3.8 Explorer.py
+clear & python3.8 Explorer.py
 
 week1 - goto - used in trajectory following - hexapod_controller
 week2 - goto_reactive - used in trajectory following - hexapod_controller

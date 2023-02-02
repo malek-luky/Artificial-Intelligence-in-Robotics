@@ -88,6 +88,18 @@ class HexapodExplorer:
 
     ### START OF CUSTOM FUNCTIONS ###
 
+    #### START OF MY CODE SEMESTER PROJECT ####
+    def print_path(self, path):
+        if path is not None:
+            if len(path.poses)==0:
+                print("Path is empty")
+            for i, pose in enumerate(path.poses):
+                print("Point",i,":",pose.position.x,pose.position.y)
+        else:
+            print("Path is None")
+
+    #### END OF MY CODE SEMESTER PROJECT ####
+
     def world_to_map(self, point_x_global, point_y_global, grid_map):
         map_origin = np.array([grid_map.origin.position.x, grid_map.origin.position.y])
         map_resolution = grid_map.resolution
@@ -181,17 +193,15 @@ class HexapodExplorer:
         '''
         Return the coordinates of the pose
         '''
-        return (round(pose.position.x/resolution)+MAGIC_NUMBER, round(pose.position.y/resolution)+MAGIC_NUMBER)
+        return (round(pose.position.x/resolution+MAGIC_NUMBER), round(pose.position.y/resolution+MAGIC_NUMBER))
 
     def get_pose_from_coordinates(self, coordinates, resolution):
         '''
         Return the pose from the coordinates
         '''
         pose = Pose()
-        # pose.position.x = round(coordinates[0] * resolution, 1)
-        # pose.position.y = round(coordinates[1] * resolution, 1)
-        pose.position.x = coordinates[0] * resolution
-        pose.position.y = coordinates[1] * resolution
+        pose.position.x = np.round(coordinates[0] * resolution-MAGIC_NUMBER/10,decimals=3)
+        pose.position.y = np.round(coordinates[1] * resolution-MAGIC_NUMBER/10,decimals=3)
         return pose
 
     def a_star(self, grid_map, path, start_pose, goal_pose):
@@ -204,7 +214,6 @@ class HexapodExplorer:
         frontier = list()
         start = self.get_coordinates_from_pose(start_pose, grid_map.resolution)
         goal = self.get_coordinates_from_pose(goal_pose, grid_map.resolution)
-        print("ZDE", start, goal)
         heapq.heappush(frontier, (0, start))
         cost_so_far = dict()    # {(x1,y1):cost1, (x2,y2):cost2, ..}
         cost_so_far[start] = 0
@@ -231,7 +240,8 @@ class HexapodExplorer:
                     came_from[next_pos] = current_pos
 
         if current_pos == goal:
-            return self.format_path(path, came_from, grid_map.resolution, start, goal)
+            ret = self.format_path(path, came_from, grid_map.resolution, start, goal)
+            return ret
         else:
             return None
 
@@ -278,7 +288,7 @@ class HexapodExplorer:
         Return True if collision on the bresenham line, return False if not
         """
         for (x, y) in path:
-            if grid_map.data[y, x] != 0:
+            if grid_map.data[x, y] != 0:
                 return True
         return False
 
@@ -474,37 +484,42 @@ class HexapodExplorer:
 
     def simplify_path(self, grid_map, path):
         """ Method to simplify the found path on the grid
+            Founds the connected segments and remove unnecessary points
         Args:
             grid_map: OccupancyGrid - gridmap for obstacle growing
             path: Path - path to be simplified
         Returns:
             path_simple: Path - simplified path
         """
-        if grid_map == None or path == None:
+        if grid_map == None or path == None or len(path.poses)==0:
             return None
         path_simple = Path()
-        # add the start pose
-        path_simple.poses.append(path.poses[0])
+        path_simple.poses.append(path.poses[0]) # add the start pose
 
         # START OF WEEK 4 CODE PART 3
         i = 1
-        while path_simple.poses[-1] != path.poses[-1]:
-            previous_pose = path_simple.poses[-1]
+        while path_simple.poses[-1] != path.poses[-1]: #while goal not reached
+            last_pose = path_simple.poses[-1]
             no_col = False
             for pose in path.poses[i::]:
-                result_collision = self.collision(self.bresenham_line(
-                    (previous_pose.position.x,previous_pose.position.y),
-                    (pose.position.x, pose.position.y)),
-                    grid_map)
+                print((last_pose.position.x,last_pose.position.y),(pose.position.x, pose.position.y))
+
+                
+                bres_line = self.bresenham_line(self.get_coordinates_from_pose(last_pose,grid_map.resolution),
+                                                self.get_coordinates_from_pose(pose,grid_map.resolution))
+                print("BRES_LINE",bres_line)
+                result_collision = self.collision(bres_line,grid_map)
                 if result_collision == False:
-                    temp_pose = pose
+                    print("no obstacle")
+                    last_pose = pose
                     i += 1
                     no_col = True
                     if pose == path.poses[-1]:  # goal is reached
                         path_simple.poses.append(pose)
                         break
                 else:
-                    path_simple.poses.append(temp_pose)
+                    print("obstacle")
+                    path_simple.poses.append(last_pose)
                     break
         # END OF WEEK 4 CODE PART 3
 
@@ -559,7 +574,7 @@ class HexapodExplorer:
             centroid = (centroid[0]/len(items), centroid[1]/len(items))
             #print(centroid)
             pose = self.get_pose_from_coordinates(
-                [centroid[0]-MAGIC_NUMBER, centroid[1]-MAGIC_NUMBER], grid_map.resolution)
+                [centroid[0], centroid[1]], grid_map.resolution)
             pose_list.append(pose)
 
         # print(pose_list)
