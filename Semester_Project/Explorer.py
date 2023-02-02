@@ -110,35 +110,34 @@ class Explorer:
         """ Planning thread that takes the constructed gridmap, find frontiers, and select the next goal with the navigation path  
         """
         # START OF MY CODE f1 + p1
+        
         while not self.stop:
-            print("planning ")
-            #obstacle growing (by robot size)
+            self.path_final = None
+
+            #### OBSTACLE GROWING ####
             #p1
             self.gridmap_processed = self.explor.grow_obstacles(self.gridmap, Constants.ROBOT_SIZE)
-            #frontier calculation
+            
+            #### FRONTIERS ####
             #f1 - select the frontiers
             self.frontiers = self.explor.find_free_edge_frontiers(self.gridmap)
  
-            #path planning and goal selection
+            #### PATH PLANNING ####
             #p1 - select the closest frontier
             if len(self.frontiers) !=0 and self.robot.odometry_ is not None:
                 shortest_path = np.inf
                 self.start = self.robot.odometry_.pose
                 for frontier in self.frontiers:
-                    print("Start: ", self.start.position.x, self.start.position.y, "Frontier: ", frontier.position.x, frontier.position.y)
                     self.path = self.explor.plan_path(self.gridmap_processed, self.start, frontier)
-                    self.explor.print_path(self.path) #TODO: print
                     #path simplification
                     self.path_simple = self.explor.simplify_path(self.gridmap_processed, self.path)
-                    
-                    #self.explor.print_path(self.path_simple)
-                    if self.path is not None:
-                        print("len path: ", self.path, "len path simple: ", self.path_simple)
-                    if self.path_simple is not None and len(self.path_simple) < shortest_path:
-                        self.path = self.path_simple
-                        shortest_path = len(self.path_simple)
+                    if self.path_simple is not None and len(self.path_simple.poses) < shortest_path:
+                        self.path_final = self.path_simple
+                        shortest_path = len(self.path_simple.poses)
+                # if self.path_final is not None:
+                #     self.explor.print_path(self.path_final)
             else:
-                print("No frontiers found or odometry bullshit")
+                print("No frontiers found")
         # END OF MY CODE f1 + p1
  
     def trajectory_following(self):
@@ -146,14 +145,19 @@ class Explorer:
         """ 
         # START OF MY CODE necessary init
         while not self.stop:
-            continue
-            #if self.robot.navigation_goal is None and self.path is not None and len(self.path.poses) != 0:
-                #print("trajectory_following")
-                #fetch the new navigation goal
-                #nav_goal = self.path.poses.pop(0)
-                #print("Goto: ", nav_goal.position.x, nav_goal.position.y)
-                # TODO
-                #self.robot.goto(nav_goal)
+            if self.path_final is not None and len(self.path_final.poses) != 0:
+                print("trajectory_following")
+                nav_goal = self.path_final.poses.pop(0)
+                print(nav_goal)
+                print("Goto: ", nav_goal.position.x, nav_goal.position.y)
+                self.robot.goto(nav_goal)
+                while self.robot.navigation_goal is not None:
+                    odom = self.robot.odometry_.pose
+                    odom.position.z = 0 
+                    dist = nav_goal.dist(odom)
+                    print("Vzdaľenosť: ", dist)
+                    time.sleep(1)
+                print("Arrived")
         # END OF MY CODE necessary init
  
  
@@ -179,10 +183,10 @@ if __name__ == "__main__":
             ex0.path.plot(ax1)
         for frontier in ex0.frontiers:
             ax0.scatter(frontier.position.x, frontier.position.y)
+            ax1.scatter(frontier.position.x, frontier.position.y)
         plt.xlabel('x[m]')
         plt.ylabel('y[m]')
         ax0.set_aspect('equal', 'box')
         ax1.set_aspect('equal', 'box')
         plt.show()
         plt.pause(1)#pause for 1s
-        time.sleep(1)

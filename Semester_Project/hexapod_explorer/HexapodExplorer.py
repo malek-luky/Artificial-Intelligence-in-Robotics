@@ -102,9 +102,9 @@ class HexapodExplorer:
 
     def world_to_map(self, point_x_global, point_y_global, grid_map):
         map_origin = np.array([grid_map.origin.position.x, grid_map.origin.position.y])
-        map_resolution = grid_map.resolution
         point = np.array([point_x_global, point_y_global])
-        return ((point - map_origin) / map_resolution).astype(int)
+        res = tuple((point - map_origin) / grid_map.resolution)
+        return tuple((round(x) for x in res))
 
     def update_free(self, P_mi):
         """method to calculate the Bayesian update of the free cell with the current occupancy probability value P_mi 
@@ -212,8 +212,8 @@ class HexapodExplorer:
         return None.
         '''
         frontier = list()
-        start = self.get_coordinates_from_pose(start_pose, grid_map.resolution)
-        goal = self.get_coordinates_from_pose(goal_pose, grid_map.resolution)
+        start = self.world_to_map(start_pose.position.x,start_pose.position.y, grid_map)
+        goal = self.world_to_map(goal_pose.position.x,goal_pose.position.y, grid_map)
         heapq.heappush(frontier, (0, start))
         cost_so_far = dict()    # {(x1,y1):cost1, (x2,y2):cost2, ..}
         cost_so_far[start] = 0
@@ -224,7 +224,6 @@ class HexapodExplorer:
             current_pos = heapq.heappop(frontier)[1]
 
             if current_pos == goal:
-                print("goal reached")
                 break
 
             # neighbors = [[(x1, y1), [(x2, y2), cost], ... ]
@@ -288,7 +287,7 @@ class HexapodExplorer:
         Return True if collision on the bresenham line, return False if not
         """
         for (x, y) in path:
-            if grid_map.data[x, y] != 0:
+            if grid_map.data[y, x] != 0:
                 return True
         return False
 
@@ -500,25 +499,18 @@ class HexapodExplorer:
         i = 1
         while path_simple.poses[-1] != path.poses[-1]: #while goal not reached
             last_pose = path_simple.poses[-1]
-            no_col = False
-            for pose in path.poses[i::]:
-                print((last_pose.position.x,last_pose.position.y),(pose.position.x, pose.position.y))
-
-                
-                bres_line = self.bresenham_line(self.get_coordinates_from_pose(last_pose,grid_map.resolution),
-                                                self.get_coordinates_from_pose(pose,grid_map.resolution))
-                print("BRES_LINE",bres_line)
+            for pose in path.poses[i::]:   
+                end = path_simple.poses[-1]            
+                bres_line = self.bresenham_line(self.world_to_map(end.position.x,end.position.y,grid_map),
+                                                self.world_to_map(pose.position.x, pose.position.y,grid_map))                
                 result_collision = self.collision(bres_line,grid_map)
                 if result_collision == False:
-                    print("no obstacle")
                     last_pose = pose
                     i += 1
-                    no_col = True
                     if pose == path.poses[-1]:  # goal is reached
                         path_simple.poses.append(pose)
                         break
                 else:
-                    print("obstacle")
                     path_simple.poses.append(last_pose)
                     break
         # END OF WEEK 4 CODE PART 3
