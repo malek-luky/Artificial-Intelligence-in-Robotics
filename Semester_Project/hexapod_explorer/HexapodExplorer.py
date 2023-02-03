@@ -282,15 +282,6 @@ class HexapodExplorer:
         y = goal[1]
         return line
 
-    def collision(self, path, grid_map):
-        """
-        Return True if collision on the bresenham line, return False if not
-        """
-        for (x, y) in path:
-            if grid_map.data[y, x] != 0:
-                return True
-        return False
-
     def plot_graph(self, grid_map):
         """
         Plot the graphs in case error occurs and we want to see the map
@@ -503,8 +494,13 @@ class HexapodExplorer:
                 end = path_simple.poses[-1]            
                 bres_line = self.bresenham_line(self.world_to_map(end.position.x,end.position.y,grid_map),
                                                 self.world_to_map(pose.position.x, pose.position.y,grid_map))                
-                result_collision = self.collision(bres_line,grid_map)
-                if result_collision == False:
+                
+                collision = False
+                for (x, y) in bres_line:
+                    if grid_map.data[y,x] != 0: # this is correct!
+                        collision = True
+                
+                if collision == False:
                     last_pose = pose
                     i += 1
                     if pose == path.poses[-1]:  # goal is reached
@@ -614,145 +610,3 @@ class HexapodExplorer:
             self.compute_shortest_path(start, goal)
 
         return self.plan_path_Dstar(grid_map, start, goal), self.rhs.flatten(), self.g.flatten()
-
-# START OF MY CODE WEEK 5 D-Star
-
-#### HELP FUNCTIONS #####
-    def c(self, From, To):
-        """
-        returns the value of an edge from From to To
-        """
-        if self.gridmap_data[To] == 1:
-            return np.inf
-        else:
-            return np.sqrt((From[0] - To[0]) ** 2 + (From[1] - To[1]) ** 2)
-
-    def min_succ(self, u):
-        """
-        returns the successor with the lowest rhs value
-        u(int,int) = current coordinate
-        """
-        ret = np.inf
-        for s_ in self.pred(u):
-            ret = min(ret, self.c(u, s_) + self.g[s_])
-        return ret
-
-    def pred(self, coord):
-        """
-        returns list of all 8 neighbors around the coord
-        """
-        ret = []
-        coord = np.array(coord)
-        neighbor_list = [coord+[1,0], coord+[0,1], coord+[-1,0], coord+[0,-1], coord+[1,1], coord+[-1,-1], coord+[1,-1], coord+[-1,+1]]
-        for neighbor in neighbor_list:
-            neighbor = tuple(neighbor)
-            if 0 <= neighbor[0] < len(self.gridmap_data) and 0 <= neighbor[1] < len(self.gridmap_data[1]) and self.gridmap_data[neighbor] == 0:
-                ret.append(neighbor)
-        return ret
-
-    def scan_graph(self, grid_map, data):
-        ret_list = list()
-        for x in range(0, grid_map.width):
-            for y in range(0, grid_map.height):
-                if data[x, y] != self.gridmap_data[x, y]:
-                    ret_list.append((x, y))
-        return ret_list
-
-    def format_path_Dstar(self, start, goal):
-        path = Path()
-        pose = Pose()
-        pose.position.x = start[0]+0.5
-        pose.position.y = start[1]+0.5
-        path.poses.append(pose)
-
-        u = start
-        while u != goal:
-            for s in self.pred(u):
-                if self.g[s] < self.g[u]:
-                    u = s
-            pose = Pose()
-            pose.position.x = u[0]+0.5
-            pose.position.y = u[1]+0.5
-            path.poses.append(pose)
-        return path
-
-#### ALGORITHM #####
-    def calc_key(self, s):
-        """
-        s = coordinate
-        g(s) = np.full((grid_map.height, grid_map.width), np.inf)
-        rhs(s) = np.full((grid_map.height, grid_map.width), np.inf)
-        np.full(shape, fill_value) = new array of given shape and type, filled with fill_value
-        """
-        # +h(start_s,s) + k_m is chosen heuristic (we use 0)
-        return [min(self.g[s], self.rhs[s]), min(self.g[s], self.rhs[s])]
-
-    def initialize(self, goal):
-        """
-        goal(int, int) = goal position
-        """
-        self.U = PriorityQueue()
-        #self.km= 0 #useless
-        # s is already inf (elaborate g(s) rhs() with np.full np.inf)
-        self.rhs[goal] = 0
-        self.U.put(goal, self.calc_key(goal))
-
-    def update_vertex(self, u, goal):
-        """
-        u(int, int) = current position
-        s_(int,int) = neighbor of u
-        """
-        if u != goal:
-            self.rhs[u] = self.min_succ(u)
-        self.U.remove(u) #removes only if u in U
-        if self.g[u] != self.rhs[u]:
-            self.U.put(u, self.calc_key(u))
-
-    def compute_shortest_path(self, start, goal):
-        """
-        find the shortest path
-        """
-        while not self.U.empty() and self.U.topKey() < self.calc_key(start) or self.rhs[start] != self.g[start]:
-            k_old = self.U.topKey()
-            u = self.U.pop()
-            if k_old < self.calc_key(u):
-                self.U.put(u, self.calc_key(u))
-            elif self.g[u] > self.rhs[u]:
-                self.g[u] = self.rhs[u]
-                for s in self.pred(u):
-                    self.update_vertex(s, goal)
-            else:
-                self.g[u] = np.inf
-                for s in self.pred(u):
-                    self.update_vertex(s, goal)
-                self.update_vertex(u, goal)
-
-    def plan_path_Dstar(self, grid_map, start, goal):
-        """
-        Do the "main" part of the following algorithm
-        https://www.cs.cmu.edu/~maxim/files/dlite_tro05.pdf
-        """   
-        # Init (we need to have "original" data every iteration)
-        data = grid_map.data.reshape(
-            grid_map.height, grid_map.width).transpose()    
-
-        #start = self.U.arg(self.min_succ(start))
-        changed_edges = self.scan_graph(grid_map, data)
-        if changed_edges != []:
-            for edge in changed_edges:
-                x = edge[0]
-                y = edge[1]
-                self.gridmap_data[x, y] = data[x, y] #Update the edge cost
-                for s in self.pred([x, y]):
-                    self.update_vertex(s, goal) #Update vertex U
-            for element in self.U.print_elements():
-                self.U.remove(element[1])
-                self.U.put(element[1], self.calc_key(element[1])) #U.Update(s,calckey)
-            self.compute_shortest_path(start, goal)
-        
-        if self.g[start] == np.inf:
-            print("No path found")
-            return None
-
-        return self.format_path_Dstar(start, goal)
-# END OF MY CODE WEEK 5 D-Star

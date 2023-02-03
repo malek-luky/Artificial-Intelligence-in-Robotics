@@ -1,18 +1,21 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+"""
+Project: Artificial Intelligence for Robotics
+Author: Lukas Malek
+Email: malek.luky@gmail.com
+Date: February 2023
+"""
+
+# STANDARD LIBRARIES
 import sys
 import time
 import threading as thread
- 
 import numpy as np
 import matplotlib.pyplot as plt
  
- 
+# IMPORT EHAXPOD CLASSES
 sys.path.append('../')
 sys.path.append('hexapod_robot')
 sys.path.append('hexapod_explorer')
- 
-#import hexapod robot and explorer
 import HexapodRobot 
 import HexapodExplorer
 import HexapodRobotConst as Constants
@@ -21,9 +24,9 @@ import HexapodRobotConst as Constants
 from messages import *
 
 #define sleep time
-TRAJECTORY_SLEEP_TIME = 8
+TRAJECTORY_SLEEP_TIME = 1
 MAPPING_SLEEP_TIME = 4
-PLANNING_SLEEP_TIME = 10
+PLANNING_SLEEP_TIME = 5
 PLOTTING_SLEEP_TIME = 5
  
 class Explorer:
@@ -39,7 +42,6 @@ class Explorer:
         self.gridmap = OccupancyGrid()
         self.gridmap.resolution = 0.1
         # START OF MY CODE m1
-        #TODO: m2
         self.gridmap.width = 100
         self.gridmap.height = 100
         self.gridmap.origin = Pose(Vector3(-5.0,-5.0,0.0), Quaternion(1,0,0,0))
@@ -134,11 +136,18 @@ class Explorer:
             #### PATH PLANNING ####
             #p1 - select the closest frontier
             #wait until the previous goal is reached
-            print("planning",self.goal_reached)
             if self.goal_reached:
                 #### FRONTIERS ####
                 #f1 - select the frontiers
                 self.frontiers = self.explor.find_free_edge_frontiers(self.gridmap)
+
+                #### REMOVE FRONTIERS WHICH ARE IN OBSTACLE ####
+                print("PRED:",len(self.frontiers))
+                for frontier in self.frontiers:
+                    (x,y) = self.explor.world_to_map(frontier.position.x,frontier.position.y,self.gridmap)
+                    if self.gridmap_processed.data[y,x] == 1:
+                        self.frontiers.remove(frontier)
+                print("PO:",len(self.frontiers))
                 if len(self.frontiers) !=0 and self.robot.odometry_ is not None:
                     self.path_final = None
                     shortest_path = np.inf
@@ -149,6 +158,7 @@ class Explorer:
                         self.path_simple = self.explor.simplify_path(self.gridmap_processed, self.path)
                         if self.path_simple is not None and len(self.path_simple.poses) < shortest_path:
                             self.path_final = self.path_simple
+                            self.path_final_allpoints = self.path
                             shortest_path = len(self.path_simple.poses)
                     if self.path_final is not None:
                         print(time.strftime("%H:%M:%S"),"New shortest path found!")
@@ -161,7 +171,26 @@ class Explorer:
                     print(time.strftime("%H:%M:%S"),"No frontiers found")
             elif self.goal_reached == False:
                 print(time.strftime("%H:%M:%S"),"Reaching previous goal")
-            
+
+            #### EVERY ITERATION CHECK FOR A COLLISION FROM GROWING OBSTACLES ####
+            else:
+                collision = False
+                for point in self.path_final_allpoints.poses:
+                    (x,y) = self.explor.world_to_map(point.position.x,point.position.y,self.gridmap)
+                    if self.gridmap_processed.data[y,x] == 1:
+                        collision = True
+
+                if collision == True:
+                    print(time.strftime("%H:%M:%S"),"Collision detected, replanning...")
+                    self.path_final_allpoints = self.explor.plan_path(self.gridmap_processed, self.start, frontier)
+                    #path simplification
+                    if self.path_final_allpoints is None:
+                        print(time.strftime("%H:%M:%S"),"No new path without collision!")
+                        self.path_final = None
+                        self.goal_reached = True
+                    else:
+                        self.path_final = self.explor.simplify_path(self.gridmap_processed, self.path)
+                
             time.sleep(PLANNING_SLEEP_TIME)
         # END OF MY CODE f1 + p1
  
@@ -171,19 +200,18 @@ class Explorer:
         """ 
         # START OF MY CODE necessary init
         while not self.stop:             
-            print("trajectory",self.goal_reached)   
-            if self.goal_reached == False and len(self.path_final.poses)==0:
-                print("changed to true")
+            if self.goal_reached == False and self.path_final is not None and len(self.path_final.poses)==0:
+                print(time.strftime("%H:%M:%S"), "Goal reached, waiting for new route")
                 self.goal_reached = True
-                time.sleep(PLANNING_SLEEP_TIME) #wait for a new route
+                time.sleep(PLANNING_SLEEP_TIME+1) #wait for a new route
             if self.robot.navigation_goal is None and self.path_final is not None and len(self.path_final.poses) != 0:
-                nav_goal = self.path_final.poses.pop(0)
-                print(time.strftime("%H:%M:%S"),"Goto: ", nav_goal.position.x, nav_goal.position.y)
-                self.robot.goto(nav_goal)
+                self.nav_goal = self.path_final.poses.pop(0)
+                print(time.strftime("%H:%M:%S"),"Goto: ", self.nav_goal.position.x, self.nav_goal.position.y)
+                self.robot.goto(self.nav_goal)
             elif self.robot.navigation_goal is not None:
                 odom = self.robot.odometry_.pose
                 odom.position.z = 0 
-                dist = nav_goal.dist(odom)
+                dist = self.nav_goal.dist(odom)
                 print(time.strftime("%H:%M:%S"),"Vzdalenost: ", dist)
             time.sleep(TRAJECTORY_SLEEP_TIME)
         # END OF MY CODE necessary init
@@ -217,9 +245,12 @@ if __name__ == "__main__":
         if ex0.path_final is not None:
             ex0.path_final.plot(ax0)
             ex0.path_final.plot(ax1)
+            ax0.scatter(ex0.nav_goal.position.x, ex0.nav_goal.position.y,c='red', s=50, marker='x')
+            ax1.scatter(ex0.nav_goal.position.x, ex0.nav_goal.position.y,c='red', s=50, marker='x')
         for frontier in ex0.frontiers:
             ax0.scatter(frontier.position.x, frontier.position.y)
             ax1.scatter(frontier.position.x, frontier.position.y)
+            
         plt.show()
         plt.pause(PLOTTING_SLEEP_TIME)#pause for 1s
         #time.sleep(2)
