@@ -19,15 +19,22 @@ import HexapodRobotConst as Constants
  
 #import communication messages
 from messages import *
+
+#define sleep time
+TRAJECTORY_SLEEP_TIME = 8
+MAPPING_SLEEP_TIME = 4
+PLANNING_SLEEP_TIME = 10
+PLOTTING_SLEEP_TIME = 5
  
 class Explorer:
     """ Class to represent an exploration agent
     """
     def __init__(self, robotID = 0):
-        print("Init")
+        
  
         """ VARIABLES
         """
+        print(time.strftime("%H:%M:%S"),"Initializing Explorer class...")
         #occupancy grid map of the robot ... possibly extended initialization needed in case of 'm1' assignment
         self.gridmap = OccupancyGrid()
         self.gridmap.resolution = 0.1
@@ -60,6 +67,8 @@ class Explorer:
     def start(self):
         """ method to connect to the simulated robot and start the navigation, localization, mapping and planning
         """
+        print(time.strftime("%H:%M:%S"),"Starting threads...")
+
         #turn on the robot 
         self.robot.turn_on()
  
@@ -71,7 +80,7 @@ class Explorer:
             mapping_thread = thread.Thread(target=self.mapping)
             mapping_thread.start() 
         except:
-            print("Error: unable to start mapping thread")
+            print(time.strftime("%H:%M:%S"),"Error: unable to start mapping thread")
             sys.exit(1)
  
         #start planning thread
@@ -79,7 +88,7 @@ class Explorer:
             planning_thread = thread.Thread(target=self.planning)
             planning_thread.start() 
         except:
-            print("Error: unable to start planning thread")
+            print(time.strftime("%H:%M:%S"),"Error: unable to start planning thread")
             sys.exit(1)
  
         #start trajectory following
@@ -87,7 +96,7 @@ class Explorer:
             traj_follow_thread = thread.Thread(target=self.trajectory_following)
             traj_follow_thread.start() 
         except:
-            print("Error: unable to start planning thread")
+            print(time.strftime("%H:%M:%S"),"Error: unable to start planning thread")
             sys.exit(1)
  
     def __del__(self):
@@ -102,62 +111,81 @@ class Explorer:
         # START OF MY CODE necessary init
         # fuse the laser scan   
         while not self.stop:
+            print(time.strftime("%H:%M:%S"),"Mapping...")
             self.gridmap = self.explor.fuse_laser_scan(self.gridmap, self.robot.laser_scan_, self.robot.odometry_)
             self.gridmap.data = self.gridmap.data.reshape(self.gridmap.height, self.gridmap.width)
+            
+            #### OBSTACLE GROWING #### #p1
+            self.gridmap_processed = self.explor.grow_obstacles(self.gridmap, Constants.ROBOT_SIZE)
+            
+            time.sleep(MAPPING_SLEEP_TIME)
         # END OF MY CODE necessary init
 
     def planning(self):
+        time.sleep(MAPPING_SLEEP_TIME*1+1) #wait for map init
         """ Planning thread that takes the constructed gridmap, find frontiers, and select the next goal with the navigation path  
         """
         # START OF MY CODE f1 + p1
-        
+        self.goal_reached = True
         while not self.stop:
-            self.path_final = None
-
-            #### OBSTACLE GROWING ####
-            #p1
-            self.gridmap_processed = self.explor.grow_obstacles(self.gridmap, Constants.ROBOT_SIZE)
             
-            #### FRONTIERS ####
-            #f1 - select the frontiers
-            self.frontiers = self.explor.find_free_edge_frontiers(self.gridmap)
+            
  
             #### PATH PLANNING ####
             #p1 - select the closest frontier
-            if len(self.frontiers) !=0 and self.robot.odometry_ is not None:
-                shortest_path = np.inf
-                self.start = self.robot.odometry_.pose
-                for frontier in self.frontiers:
-                    self.path = self.explor.plan_path(self.gridmap_processed, self.start, frontier)
-                    #path simplification
-                    self.path_simple = self.explor.simplify_path(self.gridmap_processed, self.path)
-                    if self.path_simple is not None and len(self.path_simple.poses) < shortest_path:
-                        self.path_final = self.path_simple
-                        shortest_path = len(self.path_simple.poses)
-                # if self.path_final is not None:
-                #     self.explor.print_path(self.path_final)
-            else:
-                print("No frontiers found")
+            #wait until the previous goal is reached
+            print("planning",self.goal_reached)
+            if self.goal_reached:
+                #### FRONTIERS ####
+                #f1 - select the frontiers
+                self.frontiers = self.explor.find_free_edge_frontiers(self.gridmap)
+                if len(self.frontiers) !=0 and self.robot.odometry_ is not None:
+                    self.path_final = None
+                    shortest_path = np.inf
+                    self.start = self.robot.odometry_.pose
+                    for frontier in self.frontiers:
+                        self.path = self.explor.plan_path(self.gridmap_processed, self.start, frontier)
+                        #path simplification
+                        self.path_simple = self.explor.simplify_path(self.gridmap_processed, self.path)
+                        if self.path_simple is not None and len(self.path_simple.poses) < shortest_path:
+                            self.path_final = self.path_simple
+                            shortest_path = len(self.path_simple.poses)
+                    if self.path_final is not None:
+                        print(time.strftime("%H:%M:%S"),"New shortest path found!")
+                        self.goal_reached = False
+                    else:
+                        print(time.strftime("%H:%M:%S"),"No new path without collision!")
+                    # if self.path_final is not None:
+                    #     self.explor.print_path(self.path_final)
+                else:
+                    print(time.strftime("%H:%M:%S"),"No frontiers found")
+            elif self.goal_reached == False:
+                print(time.strftime("%H:%M:%S"),"Reaching previous goal")
+            
+            time.sleep(PLANNING_SLEEP_TIME)
         # END OF MY CODE f1 + p1
  
     def trajectory_following(self):
+        time.sleep(MAPPING_SLEEP_TIME*1+PLANNING_SLEEP_TIME+1) #wait for plan init
         """trajectory following thread that assigns new goals to the robot navigation thread
         """ 
         # START OF MY CODE necessary init
-        while not self.stop:
-            if self.path_final is not None and len(self.path_final.poses) != 0:
-                print("trajectory_following")
+        while not self.stop:             
+            print("trajectory",self.goal_reached)   
+            if self.goal_reached == False and len(self.path_final.poses)==0:
+                print("changed to true")
+                self.goal_reached = True
+                time.sleep(PLANNING_SLEEP_TIME) #wait for a new route
+            if self.robot.navigation_goal is None and self.path_final is not None and len(self.path_final.poses) != 0:
                 nav_goal = self.path_final.poses.pop(0)
-                print(nav_goal)
-                print("Goto: ", nav_goal.position.x, nav_goal.position.y)
+                print(time.strftime("%H:%M:%S"),"Goto: ", nav_goal.position.x, nav_goal.position.y)
                 self.robot.goto(nav_goal)
-                while self.robot.navigation_goal is not None:
-                    odom = self.robot.odometry_.pose
-                    odom.position.z = 0 
-                    dist = nav_goal.dist(odom)
-                    print("Vzdaľenosť: ", dist)
-                    time.sleep(1)
-                print("Arrived")
+            elif self.robot.navigation_goal is not None:
+                odom = self.robot.odometry_.pose
+                odom.position.z = 0 
+                dist = nav_goal.dist(odom)
+                print(time.strftime("%H:%M:%S"),"Vzdalenost: ", dist)
+            time.sleep(TRAJECTORY_SLEEP_TIME)
         # END OF MY CODE necessary init
  
  
@@ -168,25 +196,31 @@ if __name__ == "__main__":
     ex0.start()
  
     #continuously plot the map, targets and plan (once per second)
-    fig, (ax0, ax1) = plt.subplots(nrows=2, ncols=1, figsize=(10,5))
+    fig, (ax0, ax1) = plt.subplots(nrows=2, ncols=1, figsize=(5,10))
     plt.ion()
+    time.sleep(MAPPING_SLEEP_TIME*1+PLANNING_SLEEP_TIME+TRAJECTORY_SLEEP_TIME+1) #wait for everything to init
+    ax0.set_xlabel('x[m]')
+    ax0.set_ylabel('y[m]')
+    ax1.set_xlabel('x[m]')
+    ax1.set_ylabel('y[m]')
+    ax0.set_aspect('equal', 'box')
+    ax1.set_aspect('equal', 'box')
     while(1):
-        plt.cla()
+        ax0.cla()
+        ax1.cla()
         #plot the gridmap
         if ex0.gridmap.data is not None:
             ex0.gridmap.plot(ax0)
         if ex0.gridmap_processed.data is not None:
             ex0.gridmap_processed.plot(ax1)
         #plot the navigation path
-        if ex0.path is not None:
-            ex0.path.plot(ax0)
-            ex0.path.plot(ax1)
+        if ex0.path_final is not None:
+            ex0.path_final.plot(ax0)
+            ex0.path_final.plot(ax1)
         for frontier in ex0.frontiers:
             ax0.scatter(frontier.position.x, frontier.position.y)
             ax1.scatter(frontier.position.x, frontier.position.y)
-        plt.xlabel('x[m]')
-        plt.ylabel('y[m]')
-        ax0.set_aspect('equal', 'box')
-        ax1.set_aspect('equal', 'box')
         plt.show()
-        plt.pause(1)#pause for 1s
+        plt.pause(PLOTTING_SLEEP_TIME)#pause for 1s
+        #time.sleep(2)
+        print(time.strftime("%H:%M:%S"),"Plotting...")

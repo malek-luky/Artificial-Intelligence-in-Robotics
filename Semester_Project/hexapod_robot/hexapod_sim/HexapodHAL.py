@@ -57,9 +57,9 @@ class HexapodHAL:
         commThreadCycleInMs = 5
         new_clientID = vrep.simxStart(IP_address, port, waitUntilConnected, doNotReconnectOnceDisconnected, timeOutInMs, commThreadCycleInMs)
         if new_clientID!=-1:
-            print("Connected to remote API server")
+            print(time.strftime("%H:%M:%S"),"Connected to remote API server")
         else:
-            print("Connection to remote API server failed")
+            print(time.strftime("%H:%M:%S"),"Connection to remote API server failed")
             sys.exit()
         return new_clientID
 
@@ -180,7 +180,7 @@ class HexapodHAL:
 
         #start the simulation
         self.start_simulation()
-        print("Robot ready")
+        print(time.strftime("%H:%M:%S"),"Robot ready")
         return
 
     #############################################################

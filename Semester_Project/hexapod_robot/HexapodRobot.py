@@ -90,22 +90,22 @@ class HexapodRobot:
         """
         #starting the locomotion thread if it is not running
         if self.locomotion_status == False: 
-            print("Starting locomotion thread")
+            print(time.strftime("%H:%M:%S"),"Starting locomotion thread")
             try:
                 self.locomotion_stop = False
                 locomotion_thread = thread.Thread(target=self.locomotion)
             except:
-                print("Error: unable to start locomotion thread")
+                print(time.strftime("%H:%M:%S"),"Error: unable to start locomotion thread")
                 sys.exit(1)
 
             locomotion_thread.start()
         else:
-            print("The locomotion is already running")
+            print(time.strftime("%H:%M:%S"),"The locomotion is already running")
 
     def stop_locomotion(self):
         """Method to stop the locomotion
         """
-        print("Stopping the locomotion thread")
+        print(time.strftime("%H:%M:%S"),"Stopping the locomotion thread")
         self.locomotion_stop = True
 
     def locomotion(self):
@@ -205,23 +205,23 @@ class HexapodRobot:
         """
         #starting the navigation thread if it is not running
         if self.navigation_status == False: 
-            print("Starting navigation thread")
+            print(time.strftime("%H:%M:%S"),"Starting navigation thread")
             try:
                 self.navigation_stop = False
                 navigation_thread = thread.Thread(target=self.navigation)
             except:
-                print("Error: unable to start navigation thread")
+                print(time.strftime("%H:%M:%S"),"Error: unable to start navigation thread")
                 sys.exit(1)
 
             navigation_thread.start()
         else:
-            print("The navigation is already running")
+            print(time.strftime("%H:%M:%S"),"The navigation is already running")
         
     def stop_navigation(self):
         """
         Stop the navigation thread
         """
-        print("Stopping the navigation thread")
+        print(time.strftime("%H:%M:%S"),"Stopping the navigation thread")
         self.navigation_stop = True
         self.locomotion_stop = True
 
@@ -232,7 +232,7 @@ class HexapodRobot:
 
         #start the locomotion if it is not running
         if self.locomotion_status == False:
-            print("locomotion thread is not yet running -- starting it")
+            print(time.strftime("%H:%M:%S"),"Starting locomotion thread")
             self.start_locomotion()
 
         #navigation loop
