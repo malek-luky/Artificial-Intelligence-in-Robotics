@@ -1,5 +1,9 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+"""
+Project: Artificial Intelligence for Robotics
+Author: Lukas Malek
+Email: malek.luky@gmail.com
+Date: February 2023
+"""
 
 import math
 import time

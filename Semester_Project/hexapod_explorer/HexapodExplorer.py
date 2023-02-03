@@ -1,35 +1,26 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+"""
+Project: Artificial Intelligence for Robotics
+Author: Lukas Malek
+Email: malek.luky@gmail.com
+Date: February 2023
+"""
 
-
+# STANDARD LIBRARIES
 import math
-import time
 import numpy as np
 import copy
-
-# cpg network
-import cpg.oscilator_network as osc
-
-#import messages
 from messages import *
-
 import matplotlib.pyplot as plt
-
 import scipy.ndimage as ndimg
-from sklearn.cluster import KMeans
-
-import collections
 import heapq
 
 # CUSTOM IMPORT
 import sys
 import heapq
 import skimage.measure as skm
-#from queue import PriorityQueue
 np.set_printoptions(threshold=sys.maxsize)  # print full numpy array
 
-MAGIC_NUMBER = 50 #TODO
-
+# PRIORITY QUEUE
 class PriorityQueue:
     def __init__(self):
         self.elements = []
@@ -78,18 +69,18 @@ class PriorityQueue:
                 if value == subitem:
                     return item[1]
 
-# END OF CUSTOM IMPORT
-
-
+###################################################################
+# CLASS HEXAPOD EXPLORER
+###################################################################
 class HexapodExplorer:
 
     def __init__(self):
         pass
 
-    ### START OF CUSTOM FUNCTIONS ###
-
-    #### START OF MY CODE SEMESTER PROJECT ####
     def print_path(self, path):
+        """
+        Method to print the path point by point
+        """
         if path is not None:
             if len(path.poses)==0:
                 print("Path is empty")
@@ -98,16 +89,10 @@ class HexapodExplorer:
         else:
             print("Path is None")
 
-    #### END OF MY CODE SEMESTER PROJECT ####
-
-    def world_to_map(self, point_x_global, point_y_global, grid_map):
-        map_origin = np.array([grid_map.origin.position.x, grid_map.origin.position.y])
-        point = np.array([point_x_global, point_y_global])
-        res = tuple((point - map_origin) / grid_map.resolution)
-        return tuple((round(x) for x in res))
-
     def update_free(self, P_mi):
-        """method to calculate the Bayesian update of the free cell with the current occupancy probability value P_mi 
+        """
+        Method to calculate the Bayesian update of the free cell with the current occupancy probability value P_mi 
+
         Args:
             P_mi: float64 - current probability of the cell being occupied
         Returns:
@@ -121,7 +106,9 @@ class HexapodExplorer:
         return max(0.05, p_mi)  # never let p_mi get to 0
 
     def update_occupied(self, P_mi):
-        """method to calculate the Bayesian update of the occupied cell with the current occupancy probability value P_mi
+        """
+        Method to calculate the Bayesian update of the occupied cell with the current occupancy probability value P_mi
+
         Args:
             P_mi: float64 - current probability of the cell being occupied
         Returns:
@@ -134,20 +121,6 @@ class HexapodExplorer:
         p_mi = (p_z_mi_occ*P_mi)/((p_z_mi_occ*P_mi)+(p_z_mi_free*(1-P_mi)))
         return min(p_mi, 0.95)  # never let p_mi get to 1
 
-    def convolution2d(self, grid_map, kernel_size):
-        """
-        Return the convolution of the image with the kernel
-        NOT WORKING, MIGHT BE USEFUL LATER
-        """
-        y_size, x_size = grid_map.shape
-        new_grid_map = copy.deepcopy(grid_map)
-        offset = int(kernel_size/2)  # kernel size are only odd numbers
-        for x in range(offset, y_size-offset+1):
-            for y in range(offset, x_size-offset+1):
-                new_grid_map[x][y] = np.max(
-                    grid_map[x-offset:x+offset, y-offset:y+offset])
-        return new_grid_map
-
     def distance(self, start, end):
         '''
         Return the distance from the point A to the point B
@@ -156,7 +129,7 @@ class HexapodExplorer:
         (x2, y2) = end
         return math.sqrt(abs(x1 - x2)**2 + abs(y1 - y2)**2)
 
-    def format_path(self, path, came_from, resolution, start, goal):
+    def format_path(self, path, came_from, grid_map, start, goal):
         '''
         Return the path as requested in assignment as a list
         of positions[(x1, y1), (x2, y2), ...] At the moment the
@@ -165,20 +138,21 @@ class HexapodExplorer:
         in other words start at the goal and than ask, "how I get there" till
         we will not reach the starting point
         '''
-        path.poses.insert(0, self.get_pose_from_coordinates(
-            goal, resolution))  # Add goal!!
+        path.poses.insert(0, self.map_to_world(
+            goal, grid_map))  # Add goal!!
         coordinates = came_from.get(goal)
         while coordinates != start:
-            pose = self.get_pose_from_coordinates(coordinates, resolution)
+            pose = self.map_to_world(coordinates, grid_map)
             coordinates = came_from.get(coordinates)
             path.poses.insert(0, pose)
-        pose = self.get_pose_from_coordinates(coordinates, resolution)
+        pose = self.map_to_world(coordinates, grid_map)
         path.poses.insert(0, pose)  # Add start!!
         return path
 
     def neighbors_finder(self, current_pos, grid_map):
         '''
         Return the list of the neighbors of the current position
+        return neighbors = [[(x1, y1), [(x2, y2), cost], ... ]
         '''
         neighbors = []
         (x, y) = current_pos
@@ -188,45 +162,45 @@ class HexapodExplorer:
                 if (i, j) != (0, 0) and grid_map.data[y + j, x + i] == 0:
                     neighbors.append((x + i, y + j))
         return neighbors
+    
+    def world_to_map(self, point_x_global, point_y_global, grid_map):
+        """
+        Return the coordinates of the point in the map from the pose
+        """
+        map_origin = np.array([grid_map.origin.position.x, grid_map.origin.position.y])
+        point = np.array([point_x_global, point_y_global])
+        res = tuple((point - map_origin) / grid_map.resolution)
+        return tuple((round(x) for x in res))
 
-    def get_coordinates_from_pose(self, pose, resolution):
+    def map_to_world(self, coordinates, grid_map):
         '''
-        Return the coordinates of the pose
-        '''
-        return (round(pose.position.x/resolution+MAGIC_NUMBER), round(pose.position.y/resolution+MAGIC_NUMBER))
-
-    def get_pose_from_coordinates(self, coordinates, resolution):
-        '''
-        Return the pose from the coordinates
+        Return the pose from the map coordinates
         '''
         pose = Pose()
-        pose.position.x = np.round(coordinates[0] * resolution-MAGIC_NUMBER/10,decimals=3)
-        pose.position.y = np.round(coordinates[1] * resolution-MAGIC_NUMBER/10,decimals=3)
+        pose.position.x = np.round(coordinates[0] * grid_map.resolution+grid_map.origin.position.x,decimals=3)
+        pose.position.y = np.round(coordinates[1] * grid_map.resolution+grid_map.origin.position.y,decimals=3)
         return pose
 
-    def a_star(self, grid_map, path, start_pose, goal_pose):
+    def a_star(self, grid_map, start_pose, goal_pose):
         '''
         Generates the path. The method returns a list of coordinates for the
         path. It must start with the starting position and end at the goal
         position [(x1, y1), (x2, y2), … ]. If there is no path, it should
         return None.
         '''
+        path = Path()
         frontier = list()
         start = self.world_to_map(start_pose.position.x,start_pose.position.y, grid_map)
         goal = self.world_to_map(goal_pose.position.x,goal_pose.position.y, grid_map)
         heapq.heappush(frontier, (0, start))
-        cost_so_far = dict()    # {(x1,y1):cost1, (x2,y2):cost2, ..}
+        cost_so_far = dict() # {(x1,y1):cost1, (x2,y2):cost2, ..}
         cost_so_far[start] = 0
-        came_from = dict()      # {(0, 0):None, (1, 2):(0, 1), ...}
+        came_from = dict()   # {(0, 0):None, (1, 2):(0, 1), ...}
         came_from[start] = None
-
-        while frontier:         # while not empty:
+        while frontier: # while not empty:
             current_pos = heapq.heappop(frontier)[1]
-
             if current_pos == goal:
                 break
-
-            # neighbors = [[(x1, y1), [(x2, y2), cost], ... ]
             neighbors = self.neighbors_finder(current_pos, grid_map)
 
             for next_pos in neighbors:
@@ -237,15 +211,16 @@ class HexapodExplorer:
                     priority = new_cost + self.distance(next_pos, goal)
                     heapq.heappush(frontier, (priority, next_pos))
                     came_from[next_pos] = current_pos
-
         if current_pos == goal:
-            ret = self.format_path(path, came_from, grid_map.resolution, start, goal)
+            ret = self.format_path(path, came_from, grid_map, start, goal)
             return ret
         else:
             return None
 
     def bresenham_line(self, start, goal):
-        """Bresenham's line algorithm
+        """
+        Bresenham's line algorithm
+
         Args:
             start: (float64, float64) - start coordinate
             goal: (float64, float64) - goal coordinate
@@ -286,29 +261,22 @@ class HexapodExplorer:
         """
         Plot the graphs in case error occurs and we want to see the map
         """
-        #fig, ax = plt.subplots()
         data = grid_map.data.reshape(grid_map.height, grid_map.width)
-
-        # creating a plot
-        fig, ax = plt.subplots()
+        _, ax = plt.subplots()
         plt.imshow(data, cmap='viridis')
         ax = plt.gca()
         ax.set_ylim(ax.get_ylim()[::-1])
         plt.colorbar()
-
-        # plotting a plot
         plt.xlabel('x[m]')
         plt.ylabel('y[m]')
         plt.title("pixel_plot")
-
-        # show plot
         plt.show()
 
-    ### END OF CUSTOM FUNCTIONS ###
-
     def fuse_laser_scan(self, grid_map, laser_scan, odometry):
-        """ Method to fuse the laser scan data sampled by the robot with a given 
-            odometry into the probabilistic occupancy grid map
+        """
+        Method to fuse the laser scan data sampled by the robot with a given 
+        odometry into the probabilistic occupancy grid map
+
         Args:
             grid_map_update: OccupancyGrid - gridmap to fuse te laser scan to
             laser_scan: LaserScan - laser scan perceived by the robot
@@ -317,24 +285,7 @@ class HexapodExplorer:
             grid_map_update: OccupancyGrid - gridmap updated with the laser scan data
         """
         grid_map_update = copy.deepcopy(grid_map)
-
-        # START OF OUR CODE WEEK 3
-        # following this task steps on courseware: https://cw.fel.cvut.cz/wiki/courses/uir/hw/t1c-map
-
-        # NOTES
-        # filter the data outside of the range of the laser scanner
-        # local frame: x = 0, y = 0, theta = alpha_min + i*angle_increment
-        # global frame: x = odometry_x, y = odometry_y, theta_global = theta + odometry_angle
-        # filtrovat uhly pro kazdou vysec zvlast, kdy je vyhazime na zacatku, ztratime udaje o tom, z jake vysece to bylo
-        # dostaneme hodnoty, kdy kazda hodnota reprezentuje jednu vysec
-        # alpha_min = minimalni uhel laseru
-        # i = kolikata vysec z laser scaneru
-        # delta = pocet stupnu jedne vysece scaneru
-
         if laser_scan is not None and odometry is not None:
-            '''
-            INITIALIZE VALUES
-            '''
             laserscan_points = laser_scan.distances
             alpha_min = laser_scan.angle_min
             odometry_R = odometry.pose.orientation.to_R()
@@ -343,13 +294,9 @@ class HexapodExplorer:
             orientation = odometry.pose.orientation.to_Euler()[0]
             free_points = list()
             occupied_points = list()
-            #print("X: ", odometry_x, "Y: ", odometry_y, "°: ", orientation)
-
             for laserscan_sector, laserscan_sector_value in enumerate(laserscan_points):
-
                 '''
-                STEP 1
-                Project the laser scan points to x,y plane with respect to the robot heading
+                STEP 1: Project the laser scan points to x,y plane with respect to the robot heading
                 '''
                 if laserscan_sector_value < laser_scan.range_min:
                     laserscan_sector_value = laser_scan.range_min
@@ -358,11 +305,9 @@ class HexapodExplorer:
                 theta_i = alpha_min + laserscan_sector*laser_scan.angle_increment
                 point_x = laserscan_sector_value*np.cos(theta_i)
                 point_y = laserscan_sector_value*np.sin(theta_i)
-                #plt.scatter(point_x, point_y)
 
                 '''
-                STEP 2
-                Compensate for the robot odometry
+                STEP 2: Compensate for the robot odometry
                 '''
                 point_normalized = np.transpose(
                     np.array([point_x, point_y, 1]))
@@ -371,8 +316,7 @@ class HexapodExplorer:
                 #plt.scatter(point_x_global, point_y_global)
 
                 '''
-                STEP 3
-                Transfer the points from the world coordinates to the map coordinates
+                STEP 3: Transfer the points from the world coordinates to the map coordinates
                 '''
                 point_x_map, point_y_map = self.world_to_map(
                     point_x_global, point_y_global, grid_map_update)
@@ -383,8 +327,7 @@ class HexapodExplorer:
                 #plt.scatter(point_x_map, point_y_map)
 
                 '''
-                STEP 4
-                Raytrace individual scanned points
+                STEP 4: Raytrace individual scanned points
                 '''
                 odometry_x_map, odometry_y_map = self.world_to_map(
                     odometry_x, odometry_y, grid_map_update)
@@ -396,18 +339,15 @@ class HexapodExplorer:
                 # nevim jak to plotnout
 
             '''
-            STEP 5
-            Update the occupancy grid using the Bayesian update and the simplified laser scan sensor model
+            STEP 5: Update the occupancy grid using the Bayesian update and the simplified laser scan sensor model
             '''
             data = grid_map_update.data.reshape(grid_map_update.height, grid_map_update.width)
             for (x, y) in occupied_points:
                 data[y, x] = self.update_occupied(data[y, x])
             for (x, y) in free_points:
                 data[y, x] = self.update_free(data[y, x])
-            grid_map_update.data = data.flatten() #easy version, watch out for dimensions in hard one
-
-        # END OF OUR CODE WEEK 3
-
+            grid_map_update.data = data.flatten() 
+            #TODO: easy version, watch out for dimensions in hard one
         return grid_map_update
 
     def grow_obstacles(self, grid_map, robot_size):
@@ -417,64 +357,27 @@ class HexapodExplorer:
             robot_size: float - size of the robot
         Returns:
             grid_map_grow: OccupancyGrid - gridmap with considered robot body embodiment
+        Notes:
+            use obstacle growing only on obstacles, not uknown areas
+            filter all unknown areas moved to the end of the function
         """
 
-        """
-        UPDATE
-        * use obstacle growing only on obstacles, not uknown areas
-        -> filter all unknown areas moved to the end of the function
-        """
         grid_map_grow = copy.deepcopy(grid_map)
-
-        # START OF WEEK 4 CODE PART 1
-        # following this task steps on courseware: https://cw.fel.cvut.cz/wiki/courses/uir/hw/t1d-growth
-
-        # Filter all obstacles
         grid_map_grow.data[grid_map.data > 0.5] = 1  # obstacles
-        # Filter all free areas
         grid_map_grow.data[grid_map.data <= 0.5] = 0  # free area
-        # Filter cells close to obstacle
-        kernel_size = round(
-            robot_size/grid_map_grow.resolution)  # must be even
-        r = round(kernel_size)
-        kernel = np.fromfunction(lambda x, y: (
-            (x-r)**2 + (y-r)**2 < r**2)*1, (2*r+1, 2*r+1), dtype=int).astype(np.uint8)
+        kernel_size = round(robot_size/grid_map_grow.resolution)  # must be even
+        r = round(kernel_size) # filter cells close to obstacles
+        kernel = np.fromfunction(lambda x, y: ((x-r)**2 + (y-r)**2 < r**2)*1, (2*r+1, 2*r+1), dtype=int).astype(np.uint8)
         grid_map_grow.data = ndimg.convolve(grid_map_grow.data, kernel)
         grid_map_grow.data[grid_map_grow.data > 1] = 1
-
-        # Filter all unknown arres
         grid_map_grow.data[grid_map.data == 0.5] = 1  # unknown area
-        # self.plot_graph(grid_map_grow)
-        # END OF WEEK 4 CODE PART 1
         return grid_map_grow
 
-    def plan_path(self, grid_map, start, goal):
-        """ Method to plan the path from start to the goal pose on the grid
-        Args:
-            grid_map: OccupancyGrid - gridmap for obstacle growing
-            start: Pose - robot start pose
-            goal: Pose - robot goal pose
-        Returns:
-            path: Path - path between the start and goal Pose on the map
-        """
-
-        path = Path()
-
-        # add the start pose
-        # path.poses.append(start)
-
-        # START OF WEEK 4 CODE PART 2
-        path = self.a_star(grid_map, path, start, goal)
-        # adding start and end point is implemented inside the function
-        # END OF WEEK 4 CODE PART 2
-
-        # add the goal pose
-        # path.poses.append(goal)
-        return path
-
     def simplify_path(self, grid_map, path):
-        """ Method to simplify the found path on the grid
-            Founds the connected segments and remove unnecessary points
+        """
+        Method to simplify the found path on the grid
+        Founds the connected segments and remove unnecessary points
+
         Args:
             grid_map: OccupancyGrid - gridmap for obstacle growing
             path: Path - path to be simplified
@@ -485,8 +388,6 @@ class HexapodExplorer:
             return None
         path_simple = Path()
         path_simple.poses.append(path.poses[0]) # add the start pose
-
-        # START OF WEEK 4 CODE PART 3
         i = 1
         while path_simple.poses[-1] != path.poses[-1]: #while goal not reached
             last_pose = path_simple.poses[-1]
@@ -494,12 +395,10 @@ class HexapodExplorer:
                 end = path_simple.poses[-1]            
                 bres_line = self.bresenham_line(self.world_to_map(end.position.x,end.position.y,grid_map),
                                                 self.world_to_map(pose.position.x, pose.position.y,grid_map))                
-                
                 collision = False
                 for (x, y) in bres_line:
                     if grid_map.data[y,x] != 0: # this is correct!
                         collision = True
-                
                 if collision == False:
                     last_pose = pose
                     i += 1
@@ -509,29 +408,23 @@ class HexapodExplorer:
                 else:
                     path_simple.poses.append(last_pose)
                     break
-        # END OF WEEK 4 CODE PART 3
-
-        # add the goal pose - already addded!!
-        # path_simple.poses.append(path.poses[-1])
         return path_simple
 
     def find_free_edge_frontiers(self, grid_map):
-        """Method to find the free-edge frontiers (edge clusters between the free and unknown areas)
+        """
+        Method to find the free-edge frontiers (edge clusters between the free and unknown areas)
+
         Args:
             grid_map: OccupancyGrid - gridmap of the environment
         Returns:
             pose_list: Pose[] - list of selected frontiers
         """
-
-        # START OF MY CODE WEEK 5
-        data = copy.deepcopy(grid_map.data)#.reshape(grid_map.height, grid_map.width))
+        data = copy.deepcopy(grid_map.data)
         data[data == 0.5] = 10
-
         mask = np.array([[1, 1, 1], [1, 0, 1], [1, 1, 1]])
         data_c = ndimg.convolve(data, mask, mode='constant', cval=0.0)
 
         # Format result
-        frontiers = []
         for (y, val1) in enumerate(data_c):
             for (x, val2) in enumerate(val1):
                 if grid_map.data.reshape(grid_map.height, grid_map.width)[(y, x)] < 0.5 and val2 < 50 and val2 >= 10:
@@ -545,68 +438,19 @@ class HexapodExplorer:
         cluster = {}
         for label in range(1, num_labels+1):
             cluster[label] = []
-
         for x in range(0, labeled_image.shape[1]):
             for y in range(0, labeled_image.shape[0]):
 
                 label = labeled_image[y, x]
                 if label != 0:
                     cluster[label].append((x, y))
-
         pose_list = []
-
         for label, items in cluster.items():
             centroid = (0, 0)
             for item in items:
                 centroid = (centroid[0]+item[0], centroid[1]+item[1])
             centroid = (centroid[0]/len(items), centroid[1]/len(items))
-            #print(centroid)
-            pose = self.get_pose_from_coordinates(
-                [centroid[0], centroid[1]], grid_map.resolution)
+            pose = self.map_to_world(
+                [centroid[0], centroid[1]], grid_map)
             pose_list.append(pose)
-
-        # print(pose_list)
-        # self.plot_graph(grid_map)
-        # self.plot_graph(grid_convolved)
-        # self.plot_graph(grid_frontiers)
-
         return pose_list
-        # END OF MY CODE WEEK 5
-
-    def find_inf_frontiers(self, grid_map):
-        """Method to find the frontiers based on information theory approach
-        Args:
-            grid_map: OccupancyGrid - gridmap of the environment
-        Returns:
-            pose_list: Pose[] - list of selected frontiers
-        """
-        # TODO:[t1e_expl] find the information rich points in the environment
-        return None
-
-    ###########################################################################
-    # INCREMENTAL Planner
-    ###########################################################################
-
-    def plan_path_incremental(self, grid_map, start, goal):
-        """ Method to plan the path from start to the goal pose on the grid
-        Args:
-            grid_map: OccupancyGrid - gridmap for obstacle growing
-            start: Pose - robot start pose
-            goal: Pose - robot goal pose
-        Returns:
-            path: Path - path between the start and goal Pose on the map
-        """       
-        start = tuple(self.world_to_map(start.position.x, start.position.y, grid_map))
-        goal = tuple(self.world_to_map(goal.position.x, goal.position.y, grid_map))
-
-        if not hasattr(self, 'rhs'):  # first run of the function
-            self.rhs = np.full((grid_map.height, grid_map.width), np.inf)
-            self.g = np.full((grid_map.height, grid_map.width), np.inf)
-            self.gridmap_data = copy.deepcopy(grid_map.data.reshape(
-                grid_map.height, grid_map.width).transpose())
-
-            # Main init
-            self.initialize(goal) # only in the first cycle
-            self.compute_shortest_path(start, goal)
-
-        return self.plan_path_Dstar(grid_map, start, goal), self.rhs.flatten(), self.g.flatten()

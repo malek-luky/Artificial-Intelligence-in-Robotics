@@ -27,6 +27,17 @@ week11
 week12
 week13
 
+Working in files
+-Explorer.py
+-HexapodExplorer.py
+-HexapodController.py
+-HexapodRobot.py
+
+REPORT
+-udelat dokumentace
+-vypsat poznamky
+-napsat ktere metody jsme splnili
+
 TASK m2
 -krome dynamicke alokace mapy nutno predelat magic number na radku 552
 
@@ -35,7 +46,7 @@ SEMESTER PROJECTS NOTES
 -zmena, ze dokud to nedojde ke stanovenemu frontierovi, nespusti seenovy trajectory_planning a novy frontier lookup
 ---jinak se to porad toci dokolecka...
 -musíme vskutku grow_obstacles jen real obstacles
-
+-nepoužívá dubbin vozítko, takže otočky jsou trochu složité
 
 ZIP IT
 cd hexapod_explorer && zip HexapodExplorer HexapodExplorer.py && cd ..
