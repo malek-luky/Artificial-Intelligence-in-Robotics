@@ -1,6 +1,6 @@
 STARTUP
 cat /proc/sys/kernel/threads-max
-/usr/lib/coppelia_sim_edu/coppeliaSim.sh -j 60000
+/usr/lib/coppelia_sim_edu/coppeliaSim.sh -j 20000
 cd /mnt/c/Users/Lukas/OneDrive/UIR/T1a-ctrl/
 start simulation in coppelia
 python3 t1x_dstar.py (na windows python .\t3c_map.py)
@@ -11,7 +11,7 @@ python3 t2a_tspn.py
 
 SEMESTER PROJECT
 cd /mnt/c/Users/Lukas/OneDrive/UIR/Semester_Project/
-clear & python3.8 Explorer.py
+clear & python3.8 Explorer.py -j 20000
 
 week1 - goto - used in trajectory following - hexapod_controller
 week2 - goto_reactive - used in trajectory following - hexapod_controller
@@ -43,6 +43,7 @@ TODO
 -loopuje se bresenham line
 -pridat ze robot resi pouze cesty kde prvn ibod je pred nim
 -zmenit sleep 0.3
+-novy setup prekazek aby byla videt dynamicka alokace mapy
 
 SEMESTER PROJECTS NOTES
 -v copelii nejlip funguje very fast + ODE +100ms, ale muze byt nahodou...
@@ -54,6 +55,7 @@ SEMESTER PROJECTS NOTES
 -red cross kam jdeme
 -green cross goal
 -pri kolizi se zrusi goto
+-vypnute dubins vozitko, toci se na miste
 
 NAPADY NA ZLEPSENI
 -pri kolizi zastavit robota

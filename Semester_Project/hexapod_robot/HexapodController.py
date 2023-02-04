@@ -46,6 +46,10 @@ class HexapodController:
             cur_h = odometry.pose.orientation.to_Euler()[0]
             diff_h = targ_h - cur_h
             diff_h = (diff_h + math.pi) % (2*math.pi) - math.pi
-            cmd_msg.linear.x = dst_to_target
-            cmd_msg.angular.z = Constants.C_TURNING_SPEED*diff_h
+            if abs(diff_h) > np.pi/6:
+                cmd_msg.linear.x = 0
+                cmd_msg.angular.z = 10*Constants.C_TURNING_SPEED*diff_h
+            else:
+                cmd_msg.linear.x = dst_to_target
+                cmd_msg.angular.z = Constants.C_TURNING_SPEED*diff_h
         return cmd_msg     

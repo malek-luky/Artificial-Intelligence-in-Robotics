@@ -18,7 +18,11 @@ import heapq
 import sys
 import heapq
 import skimage.measure as skm
+from sklearn.cluster import KMeans
 np.set_printoptions(threshold=sys.maxsize)  # print full numpy array
+sys.path.append('../')
+sys.path.append('hexapod_robot')
+import HexapodRobotConst as Constants
 
 # PRIORITY QUEUE
 class PriorityQueue:
@@ -163,14 +167,20 @@ class HexapodExplorer:
                     neighbors.append((x + i, y + j))
         return neighbors
     
-    def world_to_map(self, point_x_global, point_y_global, grid_map):
+    def world_to_map(self, point, grid_map):
         """
         Return the coordinates of the point in the map from the pose
         """
+        if type(point) == Vector3:
+            point = (point.x, point.y)
+        else:
+            point = (point[0], point[1])
         map_origin = np.array([grid_map.origin.position.x, grid_map.origin.position.y])
-        point = np.array([point_x_global, point_y_global])
-        res = tuple((point - map_origin) / grid_map.resolution)
-        return tuple((round(x) for x in res))
+        res = (point - map_origin) / grid_map.resolution
+        return tuple(np.round(res).astype(int))
+
+        # def world_to_map(self, p, grid_origin, grid_resolution):
+        #     return np.round((p - grid_origin) / grid_resolution).astype(int)    
 
     def map_to_world(self, coordinates, grid_map):
         '''
@@ -190,8 +200,8 @@ class HexapodExplorer:
         '''
         path = Path()
         frontier = list()
-        start = self.world_to_map(start_pose.position.x,start_pose.position.y, grid_map)
-        goal = self.world_to_map(goal_pose.position.x,goal_pose.position.y, grid_map)
+        start = self.world_to_map(start_pose.position, grid_map)
+        goal = self.world_to_map(goal_pose.position, grid_map)
         heapq.heappush(frontier, (0, start))
         cost_so_far = dict() # {(x1,y1):cost1, (x2,y2):cost2, ..}
         cost_so_far[start] = 0
@@ -297,7 +307,7 @@ class HexapodExplorer:
         robot_position = np.array([odometry.pose.position.x, odometry.pose.position.y])  # just x,y
         robot_rotation_matrix = odometry.pose.orientation.to_R()[0:2, 0:2]
         grid_origin = np.array([grid_map.origin.position.x, grid_map.origin.position.y])
-        robot_position_cell = self.world_to_map(robot_position[0], robot_position[1], grid_map)
+        robot_position_cell = self.world_to_map(robot_position, grid_map)
 
         for i in range(0, len(laserscan_points)):
             if laserscan_points[i] < laser_scan.range_min: laserscan_points[i] = laser_scan.range_min
@@ -305,7 +315,7 @@ class HexapodExplorer:
             angle = laser_scan.angle_min + i * laser_scan.angle_increment
             laserscan_points[i] = np.array([math.cos(angle) * laserscan_points[i], math.sin(angle) * laserscan_points[i]])
             laserscan_points[i] = robot_rotation_matrix @ np.transpose(laserscan_points[i]) + robot_position
-            laserscan_points[i] = self.world_to_map(laserscan_points[i][0], laserscan_points[i][1], grid_map)
+            laserscan_points[i] = self.world_to_map(laserscan_points[i], grid_map)
 
         data = None
         if grid_map.data is not None:
@@ -373,10 +383,9 @@ class HexapodExplorer:
                 '''
                 STEP 1: Project the laser scan points to x,y plane with respect to the robot heading
                 '''
-                if laserscan_sector_value < laser_scan.range_min:
-                    laserscan_sector_value = laser_scan.range_min
-                if laserscan_sector_value > laser_scan.range_max:
-                    laserscan_sector_value = laser_scan.range_max
+                if laserscan_sector_value < laser_scan.range_min or laserscan_sector_value > laser_scan.range_max:
+                    continue # ignore invalid laserscan values
+                laserscan_sector_value = laser_scan.range_max
                 theta_i = alpha_min + laserscan_sector*laser_scan.angle_increment
                 point_x = laserscan_sector_value*np.cos(theta_i)
                 point_y = laserscan_sector_value*np.sin(theta_i)
@@ -393,13 +402,13 @@ class HexapodExplorer:
                 STEP 3: Transfer the points from the world coordinates to the map coordinates
                 '''
                 point_x_map, point_y_map = self.world_to_map(
-                    point_x_global, point_y_global, grid_map_update)
+                    [point_x_global, point_y_global], grid_map_update)
 
                 '''
                 STEP 4: Raytrace individual scanned points
                 '''
                 odometry_x_map, odometry_y_map = self.world_to_map(
-                    odometry_x, odometry_y, grid_map_update)
+                    [odometry_x, odometry_y], grid_map_update)
                 pts = self.bresenham_line(
                     (odometry_x_map, odometry_y_map), (point_x_map, point_y_map))
                 free_points.extend(pts)
@@ -419,7 +428,6 @@ class HexapodExplorer:
                     new_data = 0.5 * np.ones((new_height, new_width))
                     if data is not None:
                         new_data[-y_shift:-y_shift+grid_map.height, -x_shift:-x_shift+grid_map.width] = data
-                    print(grid_map_update.width, grid_map_update.height)
                     grid_map_update.width = new_width
                     grid_map_update.height = new_height
                     grid_map_update.origin = Pose(Vector3(new_origin[0], new_origin[1], 0.0), Quaternion(1, 0, 0, 0))
@@ -479,8 +487,8 @@ class HexapodExplorer:
             last_pose = path_simple.poses[-1]
             for pose in path.poses[i::]:   
                 end = path_simple.poses[-1]            
-                bres_line = self.bresenham_line(self.world_to_map(end.position.x,end.position.y,grid_map),
-                                                self.world_to_map(pose.position.x, pose.position.y,grid_map))                
+                bres_line = self.bresenham_line(self.world_to_map(end.position,grid_map),
+                                                self.world_to_map(pose.position,grid_map))                
                 collision = False
                 for (x, y) in bres_line:
                     if grid_map.data[y,x] != 0: # this is correct!
@@ -506,6 +514,8 @@ class HexapodExplorer:
         Returns:
             pose_list: Pose[] - list of selected frontiers
         """
+        LASER_MAX_RANGE = 10.0 #laser_scan.range_max
+        LASER_MIN_RANGE = 0.01 #laser_scan.range_min
         data = copy.deepcopy(grid_map.data)
         data[data == 0.5] = 10
         mask = np.array([[1, 1, 1], [1, 0, 1], [1, 1, 1]])
@@ -533,6 +543,13 @@ class HexapodExplorer:
                     cluster[label].append((x, y))
         pose_list = []
         for label, items in cluster.items():
+            # f = len(items)
+            # D = LASER_MAX_RANGE / grid_map.resolution
+            # n_r = int(1 + np.floor(f/D + 0.5))
+            # kmeans = KMeans(n_clusters=n_r, random_state=0, tol=1e-3, n_init=1, max_iter=100).fit(items)
+            # for centroid in kmeans.cluster_centers_:
+            #     pose_list.append(self.map_to_world(centroid, grid_map))
+
             centroid = (0, 0)
             for item in items:
                 centroid = (centroid[0]+item[0], centroid[1]+item[1])
@@ -543,46 +560,76 @@ class HexapodExplorer:
         return pose_list
 
     def find_free_edge_frontiers_f2(self, grid_map):
-        """
-        Method to find the free-edge frontiers (edge clusters between the free and unknown areas)
-
+        """Method to find the free-edge frontiers (edge clusters between the free and unknown areas)
         Args:
             grid_map: OccupancyGrid - gridmap of the environment
         Returns:
             pose_list: Pose[] - list of selected frontiers
         """
-        data = copy.deepcopy(grid_map.data)
-        data[data == 0.5] = 10
+        LASER_MAX_RANGE = 10.0 #laser_scan.range_max
+        LASER_MIN_RANGE = 0.01 #laser_scan.range_min
+
+        # free-edge cell detection
+        gridMapP = self.grow_obstacles(grid_map, Constants.ROBOT_SIZE)
+        data = grid_map.data.copy().reshape(grid_map.height, grid_map.width)
+        dataP = gridMapP.data.reshape(grid_map.height, grid_map.width)
+
+        for x in range(0, data.shape[0]):
+            for y in range(0, data.shape[1]):
+                if data[x, y] == 0.5:
+                    data[x, y] = 10
+
         mask = np.array([[1, 1, 1], [1, 0, 1], [1, 1, 1]])
+
         data_c = ndimg.convolve(data, mask, mode='constant', cval=0.0)
 
-        # Format result
-        for (y, val1) in enumerate(data_c):
-            for (x, val2) in enumerate(val1):
-                if grid_map.data.reshape(grid_map.height, grid_map.width)[(y, x)] < 0.5 and val2 < 50 and val2 >= 10:
-                    data[(y, x)] = 1
+        for x in range(0, data_c.shape[1]):
+            for y in range(0, data_c.shape[0]):
+                if data[y, x] < 0.5 and 10 <= data_c[y, x] < 50 and dataP[y, x] == 0:    # cell is free-edge
+                    data[y, x] = 1
                 else:
-                    data[(y, x)] = 0
-        labeled_image, num_labels = skm.label(
-            data, connectivity=2, return_num=True)
+                    data[y, x] = 0
 
-        # Final Labeling
-        cluster = {}
+        # free-edge clustering
+
+        labeled_image, num_labels = skm.label(data, connectivity=2, return_num=True)
+
+        clusters = {}
+
         for label in range(1, num_labels+1):
-            cluster[label] = []
+            clusters[label] = []
+
         for x in range(0, labeled_image.shape[1]):
             for y in range(0, labeled_image.shape[0]):
-
                 label = labeled_image[y, x]
                 if label != 0:
-                    cluster[label].append((x, y))
+                    clusters[label].append((x, y))
+
+        # free-edge centroids
+
         pose_list = []
-        for label, items in cluster.items():
-            centroid = (0, 0)
-            for item in items:
-                centroid = (centroid[0]+item[0], centroid[1]+item[1])
-            centroid = (centroid[0]/len(items), centroid[1]/len(items))
-            pose = self.map_to_world(
-                [centroid[0], centroid[1]], grid_map)
-            pose_list.append(pose)
+
+        for label, cells in clusters.items():
+            f = len(cells)
+            D = LASER_MAX_RANGE / grid_map.resolution
+            n_r = int(1 + np.floor(f/D + 0.5))
+            kmeans = KMeans(n_clusters=n_r, random_state=0, tol=1e-3, n_init=1, max_iter=100).fit(cells)
+            for centroid in kmeans.cluster_centers_:
+                if dataP[int(centroid[1]), int(centroid[0])] == 0:           # if centroid is reachable
+                    pose_list.append(self.map_to_world(centroid, grid_map))
+                else:
+                    closest = min(cells, key=lambda cell: self.distance(cell, centroid))   # closest reachable free-edge
+                    pose_list.append(self.map_to_world(closest, grid_map))
+
+            # t1e
+            #centroid = (0, 0)
+            #for cell in cells:
+            #    centroid = (centroid[0] + cell[0], centroid[1] + cell[1])
+            #centroid = (centroid[0] / len(cells), centroid[1] / len(cells))
+
+            #pose = Pose()
+            #pose.position.x = centroid[0] * grid_map.resolution + grid_map.origin.position.x
+            #pose.position.y = centroid[1] * grid_map.resolution + grid_map.origin.position.y
+            #pose_list.append(pose)
+
         return pose_list

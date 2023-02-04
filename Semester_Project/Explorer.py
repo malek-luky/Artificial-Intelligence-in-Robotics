@@ -118,7 +118,7 @@ class Explorer:
             """
             Obstacle growing: p1
             """
-            time.sleep(Constants.MAPPING_SLEEP_TIME)
+            time.sleep(Constants.THREAD_SLEEP)
             print(time.strftime("%H:%M:%S"),"Mapping...")
             self.gridmap = self.explor.fuse_laser_scan(self.gridmap, self.robot.laser_scan_, self.robot.odometry_)
             self.gridmap.data = self.gridmap.data.reshape(self.gridmap.height, self.gridmap.width)
@@ -129,18 +129,18 @@ class Explorer:
         """
         Find frontiers, select the next goal and path  
         """
-        time.sleep(Constants.MAPPING_SLEEP_TIME+1) #wait for map init
+        time.sleep(Constants.THREAD_SLEEP+1) #wait for map init
         
         # START OF MY CODE f1 + p1
         while not self.stop:
-            time.sleep(Constants.PLANNING_SLEEP_TIME)
+            time.sleep(Constants.THREAD_SLEEP)
             """
             Find frontiers: f1
             """
             if self.goal_reached: #wait until previous goal is reached
                 self.frontiers = self.explor.find_free_edge_frontiers_f1(self.gridmap)
                 for frontier in self.frontiers: #remove frontiers which are in obstacle
-                    (x,y) = self.explor.world_to_map(frontier.position.x,frontier.position.y,self.gridmap)
+                    (x,y) = self.explor.world_to_map(frontier.position,self.gridmap)
                     if self.gridmap_processed.data[y,x] == 1:
                         self.frontiers.remove(frontier)
             """
@@ -171,7 +171,7 @@ class Explorer:
             if not self.goal_reached and self.path.poses is not None:
                 collision = False
                 for point in self.path.poses: # use the old route!!
-                    (x,y) = self.explor.world_to_map(point.position.x,point.position.y,self.gridmap)
+                    (x,y) = self.explor.world_to_map(point.position,self.gridmap)
                     if self.gridmap_processed.data[y,x] == 1:
                         collision = True
                         break
@@ -188,18 +188,21 @@ class Explorer:
         """
         Assigns new goals to the robot when the previous one is reached
         """ 
-        time.sleep(Constants.MAPPING_SLEEP_TIME+Constants.PLANNING_SLEEP_TIME+1) #wait for plan init
+        time.sleep(3*Constants.THREAD_SLEEP) #wait for plan init
         while not self.stop: 
-            time.sleep(Constants.TRAJECTORY_SLEEP_TIME)
-            if self.rerouting:
-                time.sleep(Constants.TRAJECTORY_SLEEP_TIME) #wait for a new route                
-            if (self.rerouting and self.path_simple is not None) or (self.robot.navigation_goal is None and self.path_simple is not None):
+            time.sleep(Constants.THREAD_SLEEP)
+            if self.rerouting and self.path_simple is not None:
+                time.sleep(Constants.THREAD_SLEEP) #wait for a new route    
                 self.rerouting = False
+                self.nav_goal = self.path_simple.poses.pop(0)
+                print(time.strftime("%H:%M:%S"),"Replanning, new route: ", self.nav_goal.position.x, self.nav_goal.position.y)
+                self.robot.goto(self.nav_goal)            
+            if self.robot.navigation_goal is None and self.path_simple is not None:
                 if self.goal_reached == False and len(self.path_simple.poses)==0:
                     print(time.strftime("%H:%M:%S"), "Goal reached, waiting for new route")
+                    time.sleep(Constants.THREAD_SLEEP+1) #wait for a new route
                     self.goal_reached = True
-                    time.sleep(Constants.PLANNING_SLEEP_TIME+1) #wait for a new route
-                elif len(self.path_simple.poses) != 0:
+                elif self.goal_reached == False and len(self.path_simple.poses) != 0: #cotninue with the old route
                     self.nav_goal = self.path_simple.poses.pop(0)
                     print(time.strftime("%H:%M:%S"),"Goto: ", self.nav_goal.position.x, self.nav_goal.position.y)
                     self.robot.goto(self.nav_goal)
@@ -216,7 +219,7 @@ if __name__ == "__main__":
     """
     expl = Explorer()
     expl.start()
-    time.sleep(Constants.MAPPING_SLEEP_TIME+Constants.PLANNING_SLEEP_TIME+Constants.TRAJECTORY_SLEEP_TIME+1) #wait for everything to init
+    time.sleep(10*Constants.THREAD_SLEEP) #wait for everything to init
 
     """
     Initiate plotting
@@ -234,6 +237,7 @@ if __name__ == "__main__":
     Contrinuously plot the map
     """
     while(1):
+        plt.pause(Constants.THREAD_SLEEP)
         print(time.strftime("%H:%M:%S"),"Plotting...")
         ax0.cla() #clear the points from the previous iteration
         ax1.cla()
@@ -248,8 +252,11 @@ if __name__ == "__main__":
             ax1.scatter(expl.nav_goal.position.x, expl.nav_goal.position.y,c='red', s=150, marker='x')
             ax0.scatter (expl.closest_frontier.position.x, expl.closest_frontier.position.y,c='green', s=100, marker='x')
             ax1.scatter (expl.closest_frontier.position.x, expl.closest_frontier.position.y,c='green', s=100, marker='x')
+        # if expl.robot.odometry_.pose is not None: #robot
+        #     ax0.scatter(expl.robot.odometry_.pose.position.x, expl.robot.odometry_.pose.position.y,c='black', s=150, marker='x')
+        #     ax1.scatter(expl.robot.odometry_.pose.position.x, expl.robot.odometry_.pose.position.y,c='black', s=150, marker='x')
         for frontier in expl.frontiers: #frontiers
             ax0.scatter(frontier.position.x, frontier.position.y)
             ax1.scatter(frontier.position.x, frontier.position.y)
         plt.show()
-        plt.pause(Constants.PLOTTING_SLEEP_TIME)
+        
