@@ -32,21 +32,25 @@ Working in files
 -HexapodExplorer.py
 -HexapodController.py
 -HexapodRobot.py
+-HexapodRobotConst.py
 
 REPORT
 -udelat dokumentace
 -vypsat poznamky
 -napsat ktere metody jsme splnili
 
-TASK m2
--krome dynamicke alokace mapy nutno predelat magic number na radku 552
+TODO
+-loopuje se bresenham line
 
 SEMESTER PROJECTS NOTES
 -v copelii nejlip funguje very fast + ODE +100ms, ale muze byt nahodou...
 -zmena, ze dokud to nedojde ke stanovenemu frontierovi, nespusti seenovy trajectory_planning a novy frontier lookup
 ---jinak se to porad toci dokolecka...
 -musíme vskutku grow_obstacles jen real obstacles
--nepoužívá dubbin vozítko, takže otočky jsou trochu složité
+-nepoužívá dubbin vozítko, takže otočky jsou trochu složité - nutno stale prepocitavat path
+-u path_simple nedavame start, at to rovnou jde a netoci se na miste (lze resit skalarnim soucin bodu a orientace robota)
+-red cross kam jdeme
+-green cross goal
 
 ZIP IT
 cd hexapod_explorer && zip HexapodExplorer HexapodExplorer.py && cd ..

@@ -94,7 +94,6 @@ class HexapodRobot:
         """
         #starting the locomotion thread if it is not running
         if self.locomotion_status == False: 
-            print(time.strftime("%H:%M:%S"),"Starting locomotion thread")
             try:
                 self.locomotion_stop = False
                 locomotion_thread = thread.Thread(target=self.locomotion)

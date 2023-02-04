@@ -211,7 +211,7 @@ class HexapodExplorer:
                     priority = new_cost + self.distance(next_pos, goal)
                     heapq.heappush(frontier, (priority, next_pos))
                     came_from[next_pos] = current_pos
-        if current_pos == goal:
+        if current_pos == goal and start is not None and goal is not None:
             ret = self.format_path(path, came_from, grid_map, start, goal)
             return ret
         else:
@@ -408,6 +408,7 @@ class HexapodExplorer:
                 else:
                     path_simple.poses.append(last_pose)
                     break
+        path_simple.poses.pop(0) # remove the start pose
         return path_simple
 
     def find_free_edge_frontiers(self, grid_map):

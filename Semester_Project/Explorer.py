@@ -44,7 +44,7 @@ class Explorer:
         self.gridmap.height = 100
         self.gridmap.origin = Pose(Vector3(-5.0,-5.0,0.0), Quaternion(1,0,0,0))
         self.gridmap.data = 0.5*np.ones((self.gridmap.height,self.gridmap.width)) #unknown
- 
+
         """
         Initialize values
         """
@@ -52,6 +52,8 @@ class Explorer:
         self.path = None
         self.path_simple = None
         self.stop = False # stop condition for the threads
+        self.goal_reached = True
+        self.rerouting = False
  
         """
         Connecting the simulator
@@ -129,7 +131,6 @@ class Explorer:
         time.sleep(Constants.MAPPING_SLEEP_TIME+1) #wait for map init
         
         # START OF MY CODE f1 + p1
-        self.goal_reached = True
         while not self.stop:
             """
             Find frontiers: f1
@@ -162,25 +163,23 @@ class Explorer:
                         print(time.strftime("%H:%M:%S"),"No new path without collision!")
                 else:
                     print(time.strftime("%H:%M:%S"),"No frontiers found")
-            else: #check for collision from growing obstacles
+            """
+            Check for collision from growing obstacles
+            """
+            if not self.goal_reached and self.path.poses is not None:
                 collision = False
-                for point in self.path.poses:
+                for point in self.path.poses: # use the old route!!
                     (x,y) = self.explor.world_to_map(point.position.x,point.position.y,self.gridmap)
                     if self.gridmap_processed.data[y,x] == 1:
                         collision = True
                         break
-                if collision == True:
-                    new_path = self.explor.a_star(self.gridmap_processed, start, self.closest_frontier)
-                    if self.path is None:
-                        print(time.strftime("%H:%M:%S"),"Collision, replanning... Finding new frontier!")
-                        self.path_simple = None
-                        self.path = None
-                        self.goal_reached = True
-                    else:
-                        print(time.strftime("%H:%M:%S"),"Collision, replanning... Path found, using old frontier!")
-                        self.path_simple = self.explor.simplify_path(self.gridmap_processed, new_path)
-                        self.path = new_path
-                else:
+                if collision == True: # if collision or unreachable, find new path
+                    print(time.strftime("%H:%M:%S"),"Goal unreachable or collision... Finding new frontiers!")
+                    self.path_simple = None
+                    self.path = None
+                    self.goal_reached = True
+                    self.rerouting = True
+                else: # option 3: no collision
                     print(time.strftime("%H:%M:%S"),"Reaching previous goal")
             time.sleep(Constants.PLANNING_SLEEP_TIME)
  
@@ -189,8 +188,11 @@ class Explorer:
         Assigns new goals to the robot when the previous one is reached
         """ 
         time.sleep(Constants.MAPPING_SLEEP_TIME+Constants.PLANNING_SLEEP_TIME+1) #wait for plan init
-        while not self.stop:             
-            if self.robot.navigation_goal is None and self.path_simple is not None:
+        while not self.stop: 
+            if self.rerouting:
+                time.sleep(Constants.TRAJECTORY_SLEEP_TIME) #wait for a new route                
+            if (self.rerouting and self.path_simple is not None) or (self.robot.navigation_goal is None and self.path_simple is not None):
+                self.rerouting = False
                 if self.goal_reached == False and len(self.path_simple.poses)==0:
                     print(time.strftime("%H:%M:%S"), "Goal reached, waiting for new route")
                     self.goal_reached = True
@@ -202,8 +204,7 @@ class Explorer:
             elif self.robot.navigation_goal is not None:
                 odom = self.robot.odometry_.pose
                 odom.position.z = 0 
-                dist = self.nav_goal.dist(odom)
-                print(time.strftime("%H:%M:%S"),"Distance: ", dist)
+                dist = self.nav_goal.dist(odom) # print(dist)
             time.sleep(Constants.TRAJECTORY_SLEEP_TIME)
  
  
@@ -240,7 +241,7 @@ if __name__ == "__main__":
             expl.gridmap_processed.plot(ax1)
         if expl.path_simple is not None: #path
             expl.path_simple.plot(ax0)
-            expl.path_simple.plot(ax1)
+            expl.path.plot(ax1)
             ax0.scatter(expl.nav_goal.position.x, expl.nav_goal.position.y,c='red', s=150, marker='x')
             ax1.scatter(expl.nav_goal.position.x, expl.nav_goal.position.y,c='red', s=150, marker='x')
             ax0.scatter (expl.closest_frontier.position.x, expl.closest_frontier.position.y,c='green', s=100, marker='x')
