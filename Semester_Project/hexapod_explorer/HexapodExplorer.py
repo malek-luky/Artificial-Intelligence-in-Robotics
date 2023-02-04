@@ -225,10 +225,14 @@ class HexapodExplorer:
             start: (float64, float64) - start coordinate
             goal: (float64, float64) - goal coordinate
         Returns:
-            interlying points between the start and goal coordinate
+            (float64, float64) - interlying points between the start and goal coordinate
         """
         (x0, y0) = start
         (x1, y1) = goal
+        x0 = int(x0)
+        y0 = int(y0)
+        x1 = int(x1)
+        y1 = int(y1)
         line = []
         dx = abs(x1 - x0)
         dy = abs(y1 - y0)
@@ -272,6 +276,78 @@ class HexapodExplorer:
         plt.title("pixel_plot")
         plt.show()
 
+    def fuse_laser_scan2(self, grid_map: OccupancyGrid, laser_scan: LaserScan, odometry: Odometry) -> OccupancyGrid:
+        """
+        Method to fuse the laser scan data sampled by the robot with a given 
+        odometry into the probabilistic occupancy grid map
+
+        Args:
+            grid_map_update: OccupancyGrid - gridmap to fuse te laser scan to
+            laser_scan: LaserScan - laser scan perceived by the robot
+            odometry: Odometry - perceived odometry of the robot
+        Returns:
+            grid_map_update: OccupancyGrid - gridmap updated with the laser scan data
+        """
+        grid_map_update = copy.deepcopy(grid_map)
+
+        if laser_scan is None or odometry is None:
+            return grid_map_update
+
+        laserscan_points: [float] = laser_scan.distances.copy()
+        robot_position = np.array([odometry.pose.position.x, odometry.pose.position.y])  # just x,y
+        robot_rotation_matrix = odometry.pose.orientation.to_R()[0:2, 0:2]
+        grid_origin = np.array([grid_map.origin.position.x, grid_map.origin.position.y])
+        robot_position_cell = self.world_to_map(robot_position[0], robot_position[1], grid_map)
+
+        for i in range(0, len(laserscan_points)):
+            if laserscan_points[i] < laser_scan.range_min: laserscan_points[i] = laser_scan.range_min
+            if laserscan_points[i] > laser_scan.range_max: laserscan_points[i] = laser_scan.range_max
+            angle = laser_scan.angle_min + i * laser_scan.angle_increment
+            laserscan_points[i] = np.array([math.cos(angle) * laserscan_points[i], math.sin(angle) * laserscan_points[i]])
+            laserscan_points[i] = robot_rotation_matrix @ np.transpose(laserscan_points[i]) + robot_position
+            laserscan_points[i] = self.world_to_map(laserscan_points[i][0], laserscan_points[i][1], grid_map)
+
+        data = None
+        if grid_map.data is not None:
+            data = grid_map.data.reshape(grid_map.height, grid_map.width)
+
+        for x, y in laserscan_points + [robot_position_cell]:
+            if x < 0 or y < 0 or data is None or x >= grid_map.width or y >= grid_map.height:
+                x_shift = min(0, x)     # negative coordinate -> we need to shift the origin
+                y_shift = min(0, y)
+                new_width = max(grid_map.width if data is not None else 0, x+1) - x_shift   # total span
+                new_height = max(grid_map.height if data is not None else 0, y+1) - y_shift
+                new_origin = grid_origin + np.array([x_shift, y_shift]) * grid_map.resolution
+                new_data = 0.5 * np.ones((new_height, new_width))
+                if data is not None:
+                    new_data[-y_shift:-y_shift+grid_map.height, -x_shift:-x_shift+grid_map.width] = data
+
+                grid_map_update.width = new_width
+                grid_map_update.height = new_height
+                grid_map_update.origin = Pose(Vector3(new_origin[0], new_origin[1], 0.0), Quaternion(1, 0, 0, 0))
+                grid_map_update.data = new_data.flatten()
+                return self.fuse_laser_scan(grid_map_update, laser_scan, odometry)
+
+        free_points = []
+        occupied_points = []
+
+        for scan_cell in laserscan_points:
+            free_points.extend(self.bresenham_line(robot_position_cell, scan_cell))    # points on line are free
+            occupied_points.append(scan_cell)                                          # point at the end is occupied
+
+        # Bayesian update
+
+        for (x, y) in free_points:
+            data[y, x] = self.update_free(data[y, x])
+
+        for (x, y) in occupied_points:
+            data[y, x] = self.update_occupied(data[y, x])
+
+        # serialize the data back (!watch for the correct width and height settings if you are doing the harder assignment)
+        grid_map_update.data = data.flatten()
+
+        return grid_map_update
+
     def fuse_laser_scan(self, grid_map, laser_scan, odometry):
         """
         Method to fuse the laser scan data sampled by the robot with a given 
@@ -291,7 +367,6 @@ class HexapodExplorer:
             odometry_R = odometry.pose.orientation.to_R()
             odometry_x = odometry.pose.position.x
             odometry_y = odometry.pose.position.y
-            orientation = odometry.pose.orientation.to_Euler()[0]
             free_points = list()
             occupied_points = list()
             for laserscan_sector, laserscan_sector_value in enumerate(laserscan_points):
@@ -313,18 +388,12 @@ class HexapodExplorer:
                     np.array([point_x, point_y, 1]))
                 point_x_global, point_y_global, _ = odometry_R @ point_normalized + \
                     np.array([odometry_x, odometry_y, 1])
-                #plt.scatter(point_x_global, point_y_global)
 
                 '''
                 STEP 3: Transfer the points from the world coordinates to the map coordinates
                 '''
                 point_x_map, point_y_map = self.world_to_map(
                     point_x_global, point_y_global, grid_map_update)
-                point_x_map = max(
-                    min(point_x_map, grid_map_update.width-1), 0)  # easy version
-                point_y_map = max(
-                    min(point_y_map, grid_map_update.height-1), 0)  # easy version
-                #plt.scatter(point_x_map, point_y_map)
 
                 '''
                 STEP 4: Raytrace individual scanned points
@@ -333,21 +402,38 @@ class HexapodExplorer:
                     odometry_x, odometry_y, grid_map_update)
                 pts = self.bresenham_line(
                     (odometry_x_map, odometry_y_map), (point_x_map, point_y_map))
-                # nejsou free, je to ta line vsech bodu, nvm proc se to jmenuej tak divne
                 free_points.extend(pts)
                 occupied_points.append((point_x_map, point_y_map))
-                # nevim jak to plotnout
 
             '''
-            STEP 5: Update the occupancy grid using the Bayesian update and the simplified laser scan sensor model
+            STEP 5: Dynamically resize the map
             '''
             data = grid_map_update.data.reshape(grid_map_update.height, grid_map_update.width)
+            for (x, y) in [(odometry_x_map,odometry_y_map)] + occupied_points: # for the first loop we need to resize the map based on robot
+                if x < 0 or y < 0 or data is None or x >= grid_map.width or y >= grid_map.height:
+                    x_shift = min(0, x)     # negative coordinate -> we need to shift the origin
+                    y_shift = min(0, y)
+                    new_height = max(grid_map.height if data is not None else 0, y+1) - y_shift
+                    new_width = max(grid_map.width if data is not None else 0, x+1) - x_shift
+                    new_origin = np.array([grid_map.origin.position.x, grid_map.origin.position.y]) + np.array([x_shift, y_shift]) * grid_map.resolution
+                    new_data = 0.5 * np.ones((new_height, new_width))
+                    if data is not None:
+                        new_data[-y_shift:-y_shift+grid_map.height, -x_shift:-x_shift+grid_map.width] = data
+                    print(grid_map_update.width, grid_map_update.height)
+                    grid_map_update.width = new_width
+                    grid_map_update.height = new_height
+                    grid_map_update.origin = Pose(Vector3(new_origin[0], new_origin[1], 0.0), Quaternion(1, 0, 0, 0))
+                    grid_map_update.data = new_data.flatten()
+                    return self.fuse_laser_scan(grid_map_update, laser_scan, odometry)
+
+            '''
+            STEP 6: Update the occupancy grid using the Bayesian update and the simplified laser scan sensor model
+            '''
             for (x, y) in occupied_points:
                 data[y, x] = self.update_occupied(data[y, x])
             for (x, y) in free_points:
                 data[y, x] = self.update_free(data[y, x])
             grid_map_update.data = data.flatten() 
-            #TODO: easy version, watch out for dimensions in hard one
         return grid_map_update
 
     def grow_obstacles(self, grid_map, robot_size):
@@ -411,7 +497,52 @@ class HexapodExplorer:
         path_simple.poses.pop(0) # remove the start pose
         return path_simple
 
-    def find_free_edge_frontiers(self, grid_map):
+    def find_free_edge_frontiers_f1(self, grid_map):
+        """
+        Method to find the free-edge frontiers (edge clusters between the free and unknown areas)
+
+        Args:
+            grid_map: OccupancyGrid - gridmap of the environment
+        Returns:
+            pose_list: Pose[] - list of selected frontiers
+        """
+        data = copy.deepcopy(grid_map.data)
+        data[data == 0.5] = 10
+        mask = np.array([[1, 1, 1], [1, 0, 1], [1, 1, 1]])
+        data_c = ndimg.convolve(data, mask, mode='constant', cval=0.0)
+
+        # Format result
+        for (y, val1) in enumerate(data_c):
+            for (x, val2) in enumerate(val1):
+                if grid_map.data.reshape(grid_map.height, grid_map.width)[(y, x)] < 0.5 and val2 < 50 and val2 >= 10:
+                    data[(y, x)] = 1
+                else:
+                    data[(y, x)] = 0
+        labeled_image, num_labels = skm.label(
+            data, connectivity=2, return_num=True)
+
+        # Final Labeling
+        cluster = {}
+        for label in range(1, num_labels+1):
+            cluster[label] = []
+        for x in range(0, labeled_image.shape[1]):
+            for y in range(0, labeled_image.shape[0]):
+
+                label = labeled_image[y, x]
+                if label != 0:
+                    cluster[label].append((x, y))
+        pose_list = []
+        for label, items in cluster.items():
+            centroid = (0, 0)
+            for item in items:
+                centroid = (centroid[0]+item[0], centroid[1]+item[1])
+            centroid = (centroid[0]/len(items), centroid[1]/len(items))
+            pose = self.map_to_world(
+                [centroid[0], centroid[1]], grid_map)
+            pose_list.append(pose)
+        return pose_list
+
+    def find_free_edge_frontiers_f2(self, grid_map):
         """
         Method to find the free-edge frontiers (edge clusters between the free and unknown areas)
 

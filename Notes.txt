@@ -41,6 +41,8 @@ REPORT
 
 TODO
 -loopuje se bresenham line
+-pridat ze robot resi pouze cesty kde prvn ibod je pred nim
+-zmenit sleep 0.3
 
 SEMESTER PROJECTS NOTES
 -v copelii nejlip funguje very fast + ODE +100ms, ale muze byt nahodou...
@@ -51,6 +53,10 @@ SEMESTER PROJECTS NOTES
 -u path_simple nedavame start, at to rovnou jde a netoci se na miste (lze resit skalarnim soucin bodu a orientace robota)
 -red cross kam jdeme
 -green cross goal
+-pri kolizi se zrusi goto
+
+NAPADY NA ZLEPSENI
+-pri kolizi zastavit robota
 
 ZIP IT
 cd hexapod_explorer && zip HexapodExplorer HexapodExplorer.py && cd ..

@@ -40,8 +40,8 @@ class Explorer:
         """
         Task m1
         """
-        self.gridmap.width = 100
-        self.gridmap.height = 100
+        self.gridmap.width = 1
+        self.gridmap.height = 1
         self.gridmap.origin = Pose(Vector3(-5.0,-5.0,0.0), Quaternion(1,0,0,0))
         self.gridmap.data = 0.5*np.ones((self.gridmap.height,self.gridmap.width)) #unknown
 
@@ -118,11 +118,12 @@ class Explorer:
             """
             Obstacle growing: p1
             """
+            time.sleep(Constants.MAPPING_SLEEP_TIME)
             print(time.strftime("%H:%M:%S"),"Mapping...")
             self.gridmap = self.explor.fuse_laser_scan(self.gridmap, self.robot.laser_scan_, self.robot.odometry_)
             self.gridmap.data = self.gridmap.data.reshape(self.gridmap.height, self.gridmap.width)
             self.gridmap_processed = self.explor.grow_obstacles(self.gridmap, Constants.ROBOT_SIZE)
-            time.sleep(Constants.MAPPING_SLEEP_TIME)
+            
 
     def planning(self):
         """
@@ -132,11 +133,12 @@ class Explorer:
         
         # START OF MY CODE f1 + p1
         while not self.stop:
+            time.sleep(Constants.PLANNING_SLEEP_TIME)
             """
             Find frontiers: f1
             """
             if self.goal_reached: #wait until previous goal is reached
-                self.frontiers = self.explor.find_free_edge_frontiers(self.gridmap)
+                self.frontiers = self.explor.find_free_edge_frontiers_f1(self.gridmap)
                 for frontier in self.frontiers: #remove frontiers which are in obstacle
                     (x,y) = self.explor.world_to_map(frontier.position.x,frontier.position.y,self.gridmap)
                     if self.gridmap_processed.data[y,x] == 1:
@@ -181,7 +183,6 @@ class Explorer:
                     self.rerouting = True
                 else: # option 3: no collision
                     print(time.strftime("%H:%M:%S"),"Reaching previous goal")
-            time.sleep(Constants.PLANNING_SLEEP_TIME)
  
     def trajectory_following(self):
         """
@@ -189,6 +190,7 @@ class Explorer:
         """ 
         time.sleep(Constants.MAPPING_SLEEP_TIME+Constants.PLANNING_SLEEP_TIME+1) #wait for plan init
         while not self.stop: 
+            time.sleep(Constants.TRAJECTORY_SLEEP_TIME)
             if self.rerouting:
                 time.sleep(Constants.TRAJECTORY_SLEEP_TIME) #wait for a new route                
             if (self.rerouting and self.path_simple is not None) or (self.robot.navigation_goal is None and self.path_simple is not None):
@@ -205,7 +207,7 @@ class Explorer:
                 odom = self.robot.odometry_.pose
                 odom.position.z = 0 
                 dist = self.nav_goal.dist(odom) # print(dist)
-            time.sleep(Constants.TRAJECTORY_SLEEP_TIME)
+            
  
  
 if __name__ == "__main__":
