@@ -158,11 +158,12 @@ class HexapodExplorer:
         '''
         neighbors = []
         (x, y) = current_pos
+        if x==0 or y==0 or x==grid_map.width-1 or y==grid_map.width-1 or x==grid_map.height-1 or y==grid_map.height-1:
+            return []
         for i in range(-1, 2):
             for j in range(-1, 2):
-                # magic why indexes are switched
-                if (i, j) != (0, 0) and grid_map.data[y + j, x + i] == 0:
-                    neighbors.append((x + i, y + j))
+                if (i,j) != (0, 0) and grid_map.data[y + j, x + i] == 0:
+                    neighbors.append((int(x + i), int(y + j))) #not on the edge
         return neighbors
     
     def world_to_map(self, point, grid_map):
@@ -202,7 +203,6 @@ class HexapodExplorer:
         cost_so_far[start] = 0
         came_from = dict()   # {(0, 0):None, (1, 2):(0, 1), ...}
         came_from[start] = None
-        print("A_star in")
         while frontier: # while not empty:
             current_pos = heapq.heappop(frontier)[1]
             if current_pos == goal:
@@ -217,7 +217,6 @@ class HexapodExplorer:
                     priority = new_cost + self.distance(next_pos, goal)
                     heapq.heappush(frontier, (priority, next_pos))
                     came_from[next_pos] = current_pos
-        print("A_star out")
         if current_pos == goal and start is not None and goal is not None:
             ret = self.format_path(path, came_from, grid_map, start, goal)
             return ret
@@ -240,6 +239,14 @@ class HexapodExplorer:
                 ret_frontier = frontier
         return ret_path, ret_frontier
 
+    def remove_frontiers(self, gridmap, frontiers):
+        if frontiers is not None:
+            for frontier_tuple in frontiers: #remove frontiers which are in obstacle
+                frontier = frontier_tuple[0]
+                (x,y) = self.world_to_map(frontier.position,gridmap)
+                if gridmap.data[y,x] == 1:
+                    frontiers = list(filter(lambda x: x != frontier_tuple, frontiers))
+        return frontiers
 
     def bresenham_line(self, start, goal):
         """
@@ -251,13 +258,8 @@ class HexapodExplorer:
         Returns:
             (float64, float64) - interlying points between the start and goal coordinate
         """
-        print("IN")
         (x0, y0) = start
         (x1, y1) = goal
-        x0 = int(x0)
-        y0 = int(y0)
-        x1 = int(x1)
-        y1 = int(y1)
         line = []
         dx = abs(x1 - x0)
         dy = abs(y1 - y0)
@@ -266,7 +268,7 @@ class HexapodExplorer:
         sy = -1 if y0 > y1 else 1
         if dx > dy:
             err = dx / 2.0
-            while np.round(x) != np.round(x1): #floating point error?
+            while x != x1:
                 line.append((x,y))
                 err -= dy
                 if err < 0:
@@ -275,7 +277,7 @@ class HexapodExplorer:
                 x += sx
         else:
             err = dy / 2.0
-            while np.round(y) != np.round(y1): #floating point error?
+            while y != y1:
                 line.append((x,y))
                 err -= dx
                 if err < 0:
@@ -284,7 +286,6 @@ class HexapodExplorer:
                 y += sy
         x = goal[0]
         y = goal[1]
-        print("OUT")
         return line
 
     def plot_graph(self, grid_map):
@@ -427,24 +428,27 @@ class HexapodExplorer:
         path_simple.poses.append(path.poses[0]) # add the start pose
         i = 1
         while path_simple.poses[-1] != path.poses[-1]: #while goal not reached
-            last_pose = path_simple.poses[-1]
+            last_pose = path_simple.poses[-1] #last pose without collision
             for pose in path.poses[i::]:   
                 end = path_simple.poses[-1]            
                 bres_line = self.bresenham_line(self.world_to_map(end.position,grid_map),
-                                                self.world_to_map(pose.position,grid_map))                
+                                                self.world_to_map(pose.position,grid_map))    
+                
                 collision = False
-                for (x, y) in bres_line:
+                for (x, y) in bres_line: #check for collision
                     if grid_map.data[y,x] != 0: # this is correct!
                         collision = True
                 if collision == False:
-                    last_pose = pose
+                    last_pose = pose #update last_pose
                     i += 1
                     if pose == path.poses[-1]:  # goal is reached
-                        path_simple.poses.append(pose)
+                        path_simple.poses.append(last_pose)
                         break
                 else:
                     path_simple.poses.append(last_pose)
                     break
+            if len(bres_line)==1 and pose != path.poses[-1]:
+                return None # looping scenario, frontier too close and inside obstacle???
         path_simple.poses.pop(0) # remove the start pose
         return path_simple
 

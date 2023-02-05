@@ -53,7 +53,8 @@ class Explorer:
         self.path = None
         self.path_simple = None
         self.stop = False # stop condition for the threads
- 
+        self.nav_goal = None
+
         """
         Connecting the simulator
         """
@@ -121,6 +122,7 @@ class Explorer:
             self.gridmap = self.explor.fuse_laser_scan(self.gridmap, self.robot.laser_scan_, self.robot.odometry_)
             self.gridmap.data = self.gridmap.data.reshape(self.gridmap.height, self.gridmap.width)
             self.gridmap_processed = self.explor.grow_obstacles(self.gridmap, ROBOT_SIZE)
+        print(time.strftime("%H:%M:%S"),"Mapping thread terminated successfully!")
             
 
     def planning(self):
@@ -128,6 +130,7 @@ class Explorer:
         Find frontiers, select the next goal and path  
         """
         time.sleep(2*THREAD_SLEEP) #wait for map init
+        timeout = 0 # timeout counter
         
         # START OF MY CODE f1 + p1
         while not self.stop:
@@ -135,12 +138,8 @@ class Explorer:
             """
             Remove frontiers in obstacles
             """
-            if self.frontiers is not None:
-                for frontier_tuple in self.frontiers: #remove frontiers which are in obstacle
-                    frontier = frontier_tuple[0]
-                    (x,y) = self.explor.world_to_map(frontier.position,self.gridmap_processed)
-                    if self.gridmap_processed.data[y,x] == 1:
-                        self.frontiers = list(filter(lambda x: x != frontier_tuple, self.frontiers))
+            
+            
             """
             Check for collision from growing obstacles
             """
@@ -149,17 +148,18 @@ class Explorer:
                 for point in self.path.poses:
                     (x,y) = self.explor.world_to_map(point.position,self.gridmap)
                     if self.gridmap_processed.data[y,x] == 1:
+                        self.robot.stop() #stop robot
                         collision = True
                         self.path_simple = None
                         self.path = None
-                        self.robot.stop() #stop robot
                         print(time.strftime("%H:%M:%S"),"Collision detected! Rerouting...")
                         break
             """
             Reroute only if collision is detected or if the goal is reached
             """
+            self.frontiers = self.explor.remove_frontiers(self.gridmap_processed, self.frontiers) # remove frontiers in newly found obstacles
             if not collision and self.path_simple is not None and self.robot.navigation_goal is not None:
-                continue
+                continue # look for frontiers only if collision or reached goal
 
             """
             Find frontiers
@@ -169,9 +169,15 @@ class Explorer:
             f1+f2+f3: Find using heurestic and KMeans approach, each part is build on top of the other one: 
             """
             self.frontiers = self.explor.find_inf_frontiers(self.gridmap) #find frontiers
+            self.frontiers = self.explor.remove_frontiers(self.gridmap_processed, self.frontiers) # remove frontiers in obstacles
             if len(self.frontiers) ==0:
+                timeout+=1
                 print(time.strftime("%H:%M:%S"),"No frontiers found")
+                if timeout > 10:
+                    self.stop = True
+                    print(time.strftime("%H:%M:%S"),"No frontiers found 10 times in a row, stopping...")
                 continue
+            timeout = 0
             start = self.robot.odometry_.pose
             """
             p1: Select closest frontier and find the path
@@ -216,7 +222,9 @@ class Explorer:
                 self.goal_reached = False #TODO
             """
                 p3:
-                """
+            """
+        print(time.strftime("%H:%M:%S"),"Planning thread terminated successfully!")
+
 
  
     def trajectory_following(self):
@@ -237,7 +245,7 @@ class Explorer:
                     self.nav_goal = self.path_simple.poses.pop(0)
                     self.robot.goto(self.nav_goal)
                     print(time.strftime("%H:%M:%S"),"Goto: ", self.nav_goal.position.x, self.nav_goal.position.y)        
-                #dist = self.nav_goal.dist(odom)
+        print(time.strftime("%H:%M:%S"),"Trajectory following thread terminated successfully!")
             
  
  
@@ -247,7 +255,7 @@ if __name__ == "__main__":
     """
     expl = Explorer()
     expl.start()
-    time.sleep(12*THREAD_SLEEP) #wait for everything to init
+    time.sleep(16*THREAD_SLEEP) #wait for everything to init
 
     """
     Initiate plotting
@@ -264,7 +272,7 @@ if __name__ == "__main__":
     """
     Contrinuously plot the map
     """
-    while(1):
+    while not expl.stop:
         plt.pause(THREAD_SLEEP)
         ax0.cla() #clear the points from the previous iteration
         ax1.cla()
@@ -286,4 +294,5 @@ if __name__ == "__main__":
             ax0.scatter(frontier.position.x, frontier.position.y,c='red')
             ax1.scatter(frontier.position.x, frontier.position.y,c='red')
         plt.show()
+    expl.__del__() #turn it off
         
