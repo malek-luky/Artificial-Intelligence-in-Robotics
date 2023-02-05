@@ -31,6 +31,8 @@ class Path(Message):
                     pose.plot(ax, style=style, clr=clr)
         elif style == 'point':
             poses = np.asarray([(pose.position.x,pose.position.y, pose.position.z) for pose in self.poses])
+            if len(poses) == 0:
+                return
             if ax.name == '3d':
                 ax.plot(poses[::skipstep,0], poses[::skipstep,1], poses[::skipstep,2],  '.',color=clr)
                 ax.plot(poses[::skipstep,0], poses[::skipstep,1], poses[::skipstep,2],  '-',color=clr)

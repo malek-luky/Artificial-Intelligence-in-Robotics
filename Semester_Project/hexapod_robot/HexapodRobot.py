@@ -141,7 +141,7 @@ class HexapodRobot:
 
             #reset coxa angles if new cycle is detected
             for i in range(0, 6):
-                cycle_length[i] += 1;
+                cycle_length[i] += 1
                 if cycle[i] == True:
                     coxa_angles[i]= -((cycle_length[i]-2)/2)*COXA_MAX
                     cycle_length[i] = 0
@@ -241,8 +241,12 @@ class HexapodRobot:
         #navigation loop
         cmd = None
         while not self.navigation_stop:
+            #stop the robot
+            if self.control_method == self.controller.stop:
+                cmd = self.control_method()
+        
             #open-loop control
-            if self.control_method == self.controller.goto:
+            elif self.control_method == self.controller.goto:
                 cmd = self.control_method(
                             goal = self.navigation_goal,
                             odometry = self.odometry_,
@@ -272,6 +276,16 @@ class HexapodRobot:
         self.control_method = self.controller.goto
         self.navigation_lock.acquire()
         self.navigation_goal = goal
+        self.navigation_lock.release()
+
+    def stop(self):
+        """open-loop navigation towards a selected navigational goal
+        Args:
+            goal: Pose of the robot goal 
+        """
+        self.control_method = self.controller.stop
+        self.navigation_lock.acquire()
+        self.navigation_goal = None
         self.navigation_lock.release()
 
     def goto_reactive(self, goal):

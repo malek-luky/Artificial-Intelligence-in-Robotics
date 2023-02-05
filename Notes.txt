@@ -11,7 +11,7 @@ python3 t2a_tspn.py
 
 SEMESTER PROJECT
 cd /mnt/c/Users/Lukas/OneDrive/UIR/Semester_Project/
-clear & python3.8 Explorer.py -j 20000
+clear & python3.8 Explorer.py -j 10000 -m pretty_errors
 
 week1 - goto - used in trajectory following - hexapod_controller
 week2 - goto_reactive - used in trajectory following - hexapod_controller
@@ -64,6 +64,7 @@ SEMESTER PROJECTS NOTES
 	-zjsitime entropii, nejlepsi hodnota v 0.5
 	-pak vybereme frontier ktery ma nejvetsi sumu
 	-jakmile je bod daleko/blizko/za prekazkou, tak to neuvazujeme
+-pridana metoda stop
 
 TROUBLESHOOTING
 -neigbors error: restart simulation

@@ -35,6 +35,8 @@ class HexapodController:
         """
         cmd_msg = Twist() # zero velocity steering command
         if collision:
+            cmd_msg.linear.x = 0
+            cmd_msg.angular.z = 0
             return None
         if (goal is not None) and (odometry is not None):
             diff = goal.position-odometry.pose.position
@@ -53,3 +55,8 @@ class HexapodController:
                 cmd_msg.linear.x = dst_to_target
                 cmd_msg.angular.z = Constants.C_TURNING_SPEED*diff_h
         return cmd_msg     
+
+    def stop(self):
+        cmd_msg = Twist()
+        cmd_msg.linear.x = 0
+        cmd_msg.angular.z = 0

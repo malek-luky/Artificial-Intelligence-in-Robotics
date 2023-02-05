@@ -222,6 +222,23 @@ class HexapodExplorer:
         else:
             return None
 
+    def closest_frontier(self, start, frontiers,gridmap_processed):
+        '''
+        Return the closest frontier from the list of frontiers
+        '''
+        shortest_path = np.inf
+        ret_path = None
+        ret_frontier = None
+        for frontier_tuple in frontiers:
+            frontier = frontier_tuple[0]
+            path = self.a_star(gridmap_processed, start, frontier)
+            if path is not None and len(path.poses) < shortest_path:
+                ret_path = path
+                shortest_path = len(path.poses)
+                ret_frontier = frontier
+        return ret_path, ret_frontier
+
+
     def bresenham_line(self, start, goal):
         """
         Bresenham's line algorithm
