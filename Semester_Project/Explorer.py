@@ -130,27 +130,20 @@ class Explorer:
         """
         Find frontiers, select the next goal and path  
         """
-        time.sleep(2*THREAD_SLEEP) #wait for map init
+        time.sleep(4*THREAD_SLEEP) #wait for map init
         timeout = 0 # timeout counter
-        
-        # START OF MY CODE f1 + p1
         while not self.stop:
-            time.sleep(3*THREAD_SLEEP) #wait for propper map init
-            """
-            Remove frontiers in obstacles
-            """
-            
-            
+            time.sleep(3*THREAD_SLEEP) #wait for propper map init           
             """
             Check for collision from growing obstacles
             """
-            collision = False
+            self.collision = False
             if self.path is not None:
                 for point in self.path.poses:
                     (x,y) = self.explor.world_to_map(point.position,self.gridmap)
                     if self.gridmap_processed.data[y,x] == 1:
                         self.robot.stop() #stop robot
-                        collision = True
+                        self.collision = True
                         self.path_simple = None
                         self.path = None
                         print(time.strftime("%H:%M:%S"),"Collision detected! Rerouting...")
@@ -159,12 +152,8 @@ class Explorer:
             Reroute only if collision is detected or if the goal is reached
             """
             self.frontiers = self.explor.remove_frontiers(self.gridmap_astar, self.frontiers) # remove frontiers in newly found obstacles
-            if not collision and self.path_simple is not None and self.robot.navigation_goal is not None:
-                continue # look for frontiers only if collision or reached goal
-
-            """
-            Find frontiers
-            """
+            if not self.collision and self.path is not None:# and (self.robot.navigation_goal is not None or len(self.path_simple.poses) == 0):
+                continue # look for frontiers only if collision or reached goal, don't look for frontiers last step before the goal
             
             """
             f1+f2+f3: Find using heurestic and KMeans approach, each part is build on top of the other one: 
@@ -187,7 +176,7 @@ class Explorer:
                 self.path, self.frontier = self.explor.closest_frontier(start, self.frontiers, self.gridmap_astar)
                 if self.path is not None:
                     print(time.strftime("%H:%M:%S"),"New shortest path found!")
-                    self.path_simple = self.explor.simplify_path(self.gridmap_processed, self.path)
+                    self.path_simple = self.explor.simplify_path(self.gridmap_astar, self.path)
                 else:
                     self.path_simple = None
                     print(time.strftime("%H:%M:%S"),"No new path without collision!")
@@ -196,15 +185,17 @@ class Explorer:
             """
             if planning == "p2":
                 self.frontiers = sorted(self.frontiers, key=lambda x: x[1], reverse=True)
-                max_entrophy = self.frontiers[0][1]
-                filtered_lst = [item for item in self.frontiers if item[1] == max_entrophy] #filter frontiers with same entrophy
-                self.path, self.frontier = self.explor.closest_frontier(start, filtered_lst, self.gridmap_astar,)
-                if self.path is not None:
-                    self.path_simple = self.explor.simplify_path(self.gridmap_processed, self.path)
-                    print(time.strftime("%H:%M:%S"),"New shortest path found!")
-                else:
+                for frontier in self.frontiers:
+                    self.path = self.explor.a_star(self.gridmap_astar, start, frontier[0])
+                    if self.path is not None:
+                        self.frontier = frontier[0]
+                        self.path_simple = self.explor.simplify_path(self.gridmap_astar, self.path)
+                        print(time.strftime("%H:%M:%S"),"New shortest path found!")
+                        break
+                if self.path is None:
                     self.path_simple = None
                     print(time.strftime("%H:%M:%S"),"No new path without collision!")
+                    
             """
                 p3:
             """
@@ -216,15 +207,17 @@ class Explorer:
         """
         Assigns new goals to the robot when the previous one is reached
         """ 
-        time.sleep(3*THREAD_SLEEP) #wait for plan init
+        time.sleep(7*THREAD_SLEEP) #wait for plan init
         while not self.stop: 
             time.sleep(THREAD_SLEEP)
-            if self.path is None: # collision - new route
+            if self.collision: # collision - new route
                 self.robot.stop() #stop robot
                 continue          
             if self.robot.navigation_goal is None and self.path_simple is not None:
                 if len(self.path_simple.poses)==0: #reached the goal
                     self.robot.stop() #stop robot
+                    self.path_simple = None
+                    self.path = None
                     print(time.strftime("%H:%M:%S"), "Goal reached, waiting for new route")
                 else: #cotninue with the old route
                     self.nav_goal = self.path_simple.poses.pop(0)
@@ -240,7 +233,7 @@ if __name__ == "__main__":
     """
     expl = Explorer()
     expl.start()
-    time.sleep(16*THREAD_SLEEP) #wait for everything to init
+    time.sleep(18*THREAD_SLEEP) #wait for everything to init
 
     """
     Initiate plotting
@@ -266,23 +259,29 @@ if __name__ == "__main__":
             expl.gridmap.plot(ax0)
             expl.gridmap_processed.plot(ax1)
             expl.gridmap_astar.plot(ax2)
-        if expl.robot.odometry_.pose is not None: #robot
-            ax0.scatter(expl.robot.odometry_.pose.position.x, expl.robot.odometry_.pose.position.y,c='black', s=150, marker='x')
-            ax1.scatter(expl.robot.odometry_.pose.position.x, expl.robot.odometry_.pose.position.y,c='black', s=150, marker='x')
-            ax2.scatter(expl.robot.odometry_.pose.position.x, expl.robot.odometry_.pose.position.y,c='black', s=150, marker='x')
-        if expl.path is not None and expl.path_simple is not None: #path
-            expl.path.plot(ax0, style = 'point')
-            expl.path.plot(ax1, style = 'point')
-            expl.path.plot(ax2, style = 'point')
-        if expl.nav_goal is not None: #frontier
-            ax0.scatter(expl.nav_goal.position.x, expl.nav_goal.position.y,c='red', s=150, marker='x')
-            ax1.scatter(expl.nav_goal.position.x, expl.nav_goal.position.y,c='red', s=150, marker='x')
-            ax2.scatter(expl.nav_goal.position.x, expl.nav_goal.position.y,c='red', s=150, marker='x')
         for frontier_tuple in expl.frontiers: #frontiers
             frontier = frontier_tuple[0]
             ax0.scatter(frontier.position.x, frontier.position.y,c='red')
             ax1.scatter(frontier.position.x, frontier.position.y,c='red')
             ax2.scatter(frontier.position.x, frontier.position.y,c='red')
+        if expl.path is not None: #path
+            expl.path.plot(ax0, style = 'point')
+            expl.path.plot(ax1, style = 'point')
+            expl.path.plot(ax2, style = 'point')
+        if expl.path_simple is not None: #print simple path points
+            for pose in expl.path_simple.poses:
+                ax0.scatter(pose.position.x, pose.position.y,c='red', s=150, marker='x')
+                ax1.scatter(pose.position.x, pose.position.y,c='red', s=150, marker='x')
+                ax2.scatter(pose.position.x, pose.position.y,c='red', s=150, marker='x')
+        if expl.robot.odometry_.pose is not None: #robot
+            ax0.scatter(expl.robot.odometry_.pose.position.x, expl.robot.odometry_.pose.position.y,c='black', s=150, marker='o')
+            ax1.scatter(expl.robot.odometry_.pose.position.x, expl.robot.odometry_.pose.position.y,c='black', s=150, marker='o')
+            ax2.scatter(expl.robot.odometry_.pose.position.x, expl.robot.odometry_.pose.position.y,c='black', s=150, marker='o')
+        if expl.nav_goal is not None: #frontier
+            ax0.scatter(expl.nav_goal.position.x, expl.nav_goal.position.y,c='black', s=150, marker='x')
+            ax1.scatter(expl.nav_goal.position.x, expl.nav_goal.position.y,c='black', s=150, marker='x')
+            ax2.scatter(expl.nav_goal.position.x, expl.nav_goal.position.y,c='black', s=150, marker='x')
+
         plt.show()
     expl.__del__() #turn it off
         

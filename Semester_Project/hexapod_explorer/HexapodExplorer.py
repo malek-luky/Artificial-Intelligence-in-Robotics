@@ -542,19 +542,17 @@ class HexapodExplorer:
 
             # Calculate information gain along 8 rays from the frontier
             I_action = 0.0
+            beam = Pose()
             for i in range(rays):
-                ray_end_pose = Pose()
-                ray_end_pose.position.x = frontier.position.x + math.cos(i * math.pi/rays) * LASER_MAX_RANGE
-                ray_end_pose.position.y = frontier.position.y + math.sin(i * math.pi/rays) * LASER_MAX_RANGE
-                ray_end_cell = self.world_to_map(ray_end_pose.position, grid_map)
-                ray = self.bresenham_line(frontier_cell, ray_end_cell)
+                beam.position.y = frontier.position.y + math.sin(i * math.pi/rays) * LASER_MAX_RANGE
+                beam.position.x = frontier.position.x + math.cos(i * math.pi/rays) * LASER_MAX_RANGE
+                beam_end_coord = self.world_to_map(beam.position, grid_map)
+                ray = self.bresenham_line(frontier_cell, beam_end_coord)
 
                 # Accumulate information gain along the ray
                 for x, y in ray:
-                    if x < 0 or x >= grid_map.width or y < 0 or y >= grid_map.height:
-                        break    # ray reaches map bounds
-                    if grid_map.data[y, x] == 1:
-                        break    # ray reaches obstacle
+                    if (x < 0 or x >= grid_map.width or y < 0 or y >= grid_map.height) or grid_map.data[y, x] == 1:
+                        break    # ray reaches map bounds or reaches obstacle
                     I_action += H[y, x]
             frontiers_weighted.append((frontier, I_action))
 

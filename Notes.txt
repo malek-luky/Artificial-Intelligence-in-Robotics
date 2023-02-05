@@ -12,6 +12,7 @@ python3 t2a_tspn.py
 SEMESTER PROJECT
 cd /mnt/c/Users/Lukas/OneDrive/UIR/Semester_Project/
 clear & python3.8 Explorer.py -j 10000 -m pretty_errors
+cd /mnt/c/Users/Lukas/OneDrive/UIR/ && git add .
 
 week1 - goto - used in trajectory following - hexapod_controller
 week2 - goto_reactive - used in trajectory following - hexapod_controller
@@ -65,13 +66,20 @@ SEMESTER PROJECTS NOTES
 	-pak vybereme frontier ktery ma nejvetsi sumu
 	-jakmile je bod daleko/blizko/za prekazkou, tak to neuvazujeme
 -pridana metoda stop
+-pro grow obstacles v ramci a_star pridan extra margin, at se nestane, ze pri objeveni nove hrany "za rohem" musime prepocitat celou cestu znovu kvuli kolizi (taky se stalo, ze za rohem vybafla hrana, robot zustal v prekazce, a vsechno ohlasoval za unreachable)
+-vysvetlit ze neupdatuju
+-p2 lehce upraveno: zkousim postupne hledat cestu od nejlepsiho po nejhorsi, srovnavat to a hledat toho nejblizsiho je hrozne neprehle a znacne to komplikuje, je to udelane v historii na githubu, ale pro prehlednost prepsano
 
 TROUBLESHOOTING
 -neigbors error: restart simulation
 -lag pri hledani frontierů: nutny restart, nejaky brouk kteremu nemohu prijit na kloub, nestava se casto
+-grid_map.data[y + j, x + i] switched y and x axes, be careful
 
 NAPADY NA ZLEPSENI
--pri kolizi zastavit robota
+-neni prilis optimalozovazne
+-napriklad tvorba 3 map je narocna, stacily by dve
+-lze urcite refactorovat kod pro zrychleni
+-nyni vsechny vypocty az kdyz robot dojde do finalniho frontieru, slo by pocitat v průběhu
 
 ZIP IT
 cd hexapod_explorer && zip HexapodExplorer HexapodExplorer.py && cd ..
