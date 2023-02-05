@@ -74,6 +74,15 @@ TROUBLESHOOTING
 -neigbors error: restart simulation
 -lag pri hledani frontierů: nutny restart, nejaky brouk kteremu nemohu prijit na kloub, nestava se casto
 -grid_map.data[y + j, x + i] switched y and x axes, be careful
+-vypisovani No new path without collision na zacatku - robot sklouzne do unknown oblasti a nejde najit cestu
+
+IMPROVEMENTS NAD RAMEC ZADANI
+-automaticke ukonceni programu
+-lepsi plotovani
+-timovany a srozumitelny debug na obrazovce
+-vygenerovana dokumentace funkcí? (#todo)
+-pridani metody k zastaveni robota
+
 
 NAPADY NA ZLEPSENI
 -neni prilis optimalozovazne

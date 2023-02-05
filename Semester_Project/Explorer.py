@@ -23,7 +23,7 @@ from messages import *
 import pretty_errors
 
 # CHOSE THE SETUP
-planning = "p2" #p2/p3
+planning = "p1" #p2/p3
 
 
  
@@ -42,8 +42,8 @@ class Explorer:
         print(time.strftime("%H:%M:%S"),"Initializing Explorer class...")
         self.gridmap = OccupancyGrid()
         self.gridmap.resolution = 0.1
-        self.gridmap.width = 1 #m2 - otherwise default is 100
-        self.gridmap.height = 1 #m2 - for m1 we need origin self.gridmap.origin = Pose(Vector3(-5.0,-5.0,0.0), Quaternion(1,0,0,0))
+        self.gridmap.width = 2 #m2 - otherwise default is 100
+        self.gridmap.height = 2 #m2 - for m1 we need origin self.gridmap.origin = Pose(Vector3(-5.0,-5.0,0.0), Quaternion(1,0,0,0))
         self.gridmap.data = 0.5*np.ones((self.gridmap.height,self.gridmap.width)) #unknown (grey) area
 
         """
@@ -131,10 +131,10 @@ class Explorer:
         """
         Find frontiers, select the next goal and path  
         """
-        time.sleep(2*THREAD_SLEEP) #wait for map init
+        time.sleep(4*THREAD_SLEEP) #wait for map init
         timeout = 0 # timeout counter
         while not self.stop:
-            time.sleep(3*THREAD_SLEEP) #wait for propper map init           
+            time.sleep(THREAD_SLEEP) #wait for propper map init           
             """
             Check for collision from growing obstacles
             """
@@ -153,7 +153,7 @@ class Explorer:
             Reroute only if collision is detected or if the goal is reached
             """
             self.frontiers = self.explor.remove_frontiers(self.gridmap_astar, self.frontiers) # remove frontiers in newly found obstacles
-            if not self.collision and self.path is not None:# and (self.robot.navigation_goal is not None or len(self.path_simple.poses) == 0):
+            if not self.collision and self.path_simple is not None:# and (self.robot.navigation_goal is not None or len(self.path_simple.poses) == 0):
                 continue # look for frontiers only if collision or reached goal, don't look for frontiers last step before the goal
             
             """
@@ -208,12 +208,14 @@ class Explorer:
         """
         Assigns new goals to the robot when the previous one is reached
         """ 
-        time.sleep(4*THREAD_SLEEP) #wait for plan init
+        time.sleep(6*THREAD_SLEEP) #wait for plan init
         while not self.stop: 
             time.sleep(THREAD_SLEEP)
             if self.collision: # collision - new route
+                print("HERE")
                 self.robot.stop() #stop robot
                 continue          
+            print(self.robot.navigation_goal, self.path_simple==None)
             if self.robot.navigation_goal is None and self.path_simple is not None:
                 if len(self.path_simple.poses)==0: #reached the goal
                     self.robot.stop() #stop robot
@@ -275,9 +277,9 @@ if __name__ == "__main__":
                 ax1.scatter(pose.position.x, pose.position.y,c='red', s=150, marker='x')
                 ax2.scatter(pose.position.x, pose.position.y,c='red', s=150, marker='x')
         if expl.robot.odometry_.pose is not None: #robot
-            ax0.scatter(expl.robot.odometry_.pose.position.x, expl.robot.odometry_.pose.position.y,c='black', s=150, marker='o')
-            ax1.scatter(expl.robot.odometry_.pose.position.x, expl.robot.odometry_.pose.position.y,c='black', s=150, marker='o')
-            ax2.scatter(expl.robot.odometry_.pose.position.x, expl.robot.odometry_.pose.position.y,c='black', s=150, marker='o')
+            ax0.scatter(expl.robot.odometry_.pose.position.x, expl.robot.odometry_.pose.position.y,c='grey', s=150, marker='o')
+            ax1.scatter(expl.robot.odometry_.pose.position.x, expl.robot.odometry_.pose.position.y,c='grey', s=150, marker='o')
+            ax2.scatter(expl.robot.odometry_.pose.position.x, expl.robot.odometry_.pose.position.y,c='grey', s=150, marker='o')
         if expl.nav_goal is not None: #frontier
             ax0.scatter(expl.nav_goal.position.x, expl.nav_goal.position.y,c='black', s=150, marker='x')
             ax1.scatter(expl.nav_goal.position.x, expl.nav_goal.position.y,c='black', s=150, marker='x')
