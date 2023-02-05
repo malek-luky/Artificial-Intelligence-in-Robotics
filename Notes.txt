@@ -80,6 +80,7 @@ NAPADY NA ZLEPSENI
 -napriklad tvorba 3 map je narocna, stacily by dve
 -lze urcite refactorovat kod pro zrychleni
 -nyni vsechny vypocty az kdyz robot dojde do finalniho frontieru, slo by pocitat v průběhu
+-mozny vyskyt chyby kdyz srartujeme s robotem blizko prekazky, ze robot "naroste" do prekazky a tudiz neexistuje cesta pomoci astar
 
 ZIP IT
 cd hexapod_explorer && zip HexapodExplorer HexapodExplorer.py && cd ..

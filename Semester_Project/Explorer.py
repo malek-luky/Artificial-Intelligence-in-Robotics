@@ -54,6 +54,7 @@ class Explorer:
         self.path_simple = None
         self.stop = False # stop condition for the threads
         self.nav_goal = None
+        self.collision = False
 
         """
         Connecting the simulator
@@ -130,7 +131,7 @@ class Explorer:
         """
         Find frontiers, select the next goal and path  
         """
-        time.sleep(4*THREAD_SLEEP) #wait for map init
+        time.sleep(2*THREAD_SLEEP) #wait for map init
         timeout = 0 # timeout counter
         while not self.stop:
             time.sleep(3*THREAD_SLEEP) #wait for propper map init           
@@ -197,7 +198,7 @@ class Explorer:
                     print(time.strftime("%H:%M:%S"),"No new path without collision!")
                     
             """
-                p3:
+            p3:
             """
         print(time.strftime("%H:%M:%S"),"Planning thread terminated successfully!")
 
@@ -207,7 +208,7 @@ class Explorer:
         """
         Assigns new goals to the robot when the previous one is reached
         """ 
-        time.sleep(7*THREAD_SLEEP) #wait for plan init
+        time.sleep(4*THREAD_SLEEP) #wait for plan init
         while not self.stop: 
             time.sleep(THREAD_SLEEP)
             if self.collision: # collision - new route
@@ -233,7 +234,7 @@ if __name__ == "__main__":
     """
     expl = Explorer()
     expl.start()
-    time.sleep(18*THREAD_SLEEP) #wait for everything to init
+    time.sleep(16*THREAD_SLEEP) #wait for everything to init
 
     """
     Initiate plotting
