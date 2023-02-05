@@ -23,7 +23,7 @@ from messages import *
 import pretty_errors
 
 # CHOSE THE SETUP
-planning = "p1" #p2/p3
+planning = "p2" #p2/p3
 
 
  
@@ -122,6 +122,7 @@ class Explorer:
             self.gridmap = self.explor.fuse_laser_scan(self.gridmap, self.robot.laser_scan_, self.robot.odometry_)
             self.gridmap.data = self.gridmap.data.reshape(self.gridmap.height, self.gridmap.width)
             self.gridmap_processed = self.explor.grow_obstacles(self.gridmap, ROBOT_SIZE)
+            self.gridmap_astar = self.explor.grow_obstacles(self.gridmap, ROBOT_SIZE+0.1) # extra safety margin so we dont recalculate the path too often
         print(time.strftime("%H:%M:%S"),"Mapping thread terminated successfully!")
             
 
@@ -157,7 +158,7 @@ class Explorer:
             """
             Reroute only if collision is detected or if the goal is reached
             """
-            self.frontiers = self.explor.remove_frontiers(self.gridmap_processed, self.frontiers) # remove frontiers in newly found obstacles
+            self.frontiers = self.explor.remove_frontiers(self.gridmap_astar, self.frontiers) # remove frontiers in newly found obstacles
             if not collision and self.path_simple is not None and self.robot.navigation_goal is not None:
                 continue # look for frontiers only if collision or reached goal
 
@@ -169,7 +170,7 @@ class Explorer:
             f1+f2+f3: Find using heurestic and KMeans approach, each part is build on top of the other one: 
             """
             self.frontiers = self.explor.find_inf_frontiers(self.gridmap) #find frontiers
-            self.frontiers = self.explor.remove_frontiers(self.gridmap_processed, self.frontiers) # remove frontiers in obstacles
+            self.frontiers = self.explor.remove_frontiers(self.gridmap_astar, self.frontiers) # remove frontiers in obstacles
             if len(self.frontiers) ==0:
                 timeout+=1
                 print(time.strftime("%H:%M:%S"),"No frontiers found")
@@ -183,7 +184,7 @@ class Explorer:
             p1: Select closest frontier and find the path
             """
             if planning == "p1":
-                self.path, self.frontier = self.explor.closest_frontier(start, self.frontiers, self.gridmap_processed)
+                self.path, self.frontier = self.explor.closest_frontier(start, self.frontiers, self.gridmap_astar)
                 if self.path is not None:
                     print(time.strftime("%H:%M:%S"),"New shortest path found!")
                     self.path_simple = self.explor.simplify_path(self.gridmap_processed, self.path)
@@ -194,32 +195,16 @@ class Explorer:
             p2: Select closest frontier and find the path
             """
             if planning == "p2":
-                while self.path_simple is None: # rerun if the chosen frontier is unreachable
-                    self.frontiers = sorted(self.frontiers, key=lambda x: x[1], reverse=True)
-                    max_entrophy = self.frontiers[0][1]
-                    filtered_lst = [item for item in self.frontiers if item[1] == max_entrophy] #filter frontiers with same entrophy
-                    if len(filtered_lst) > 1:
-                        min_distance = np.inf
-                        for frontier_tuple in filtered_lst:
-                            frontier = frontier_tuple[0]
-                            distance = self.explor.distance((frontier.position.x, frontier.position.y), (start.position.x, start.position.y))
-                            if distance < min_distance:
-                                min_distance = distance
-                                self.frontier = frontier # highest heuristic + closest
-                    else:
-                        self.frontier = filtered_lst[0][0]
-                    self.path = self.explor.a_star(self.gridmap_processed, start, self.frontier)
+                self.frontiers = sorted(self.frontiers, key=lambda x: x[1], reverse=True)
+                max_entrophy = self.frontiers[0][1]
+                filtered_lst = [item for item in self.frontiers if item[1] == max_entrophy] #filter frontiers with same entrophy
+                self.path, self.frontier = self.explor.closest_frontier(start, filtered_lst, self.gridmap_astar,)
+                if self.path is not None:
                     self.path_simple = self.explor.simplify_path(self.gridmap_processed, self.path)
-                    if self.path_simple is None:
-                        print("MISTAKE!")
-                        self.frontiers.pop(0) #delete the unreachable frontier #TODO: useless right now... while loop?
-                    if len(self.frontiers) == 0:
-                        self.path_simple = None
-                        self.path = None
-                        print(time.strftime("%H:%M:%S"),"No new path without collision!") #TODO
-                        break
-                print(time.strftime("%H:%M:%S"),"New shortest path found!") #TODO
-                self.goal_reached = False #TODO
+                    print(time.strftime("%H:%M:%S"),"New shortest path found!")
+                else:
+                    self.path_simple = None
+                    print(time.strftime("%H:%M:%S"),"No new path without collision!")
             """
                 p3:
             """
@@ -260,39 +245,44 @@ if __name__ == "__main__":
     """
     Initiate plotting
     """
-    fig, (ax0, ax1) = plt.subplots(nrows=2, ncols=1, figsize=(5,10))
+    fig, (ax0, ax1, ax2) = plt.subplots(nrows=3, ncols=1, figsize=(5,10))
     plt.ion()
     ax0.set_xlabel('x[m]')
     ax0.set_ylabel('y[m]')
     ax1.set_xlabel('x[m]')
     ax1.set_ylabel('y[m]')
+    ax2.set_xlabel('x[m]')
+    ax2.set_ylabel('y[m]')
     ax0.set_aspect('equal', 'box')
     ax1.set_aspect('equal', 'box')
+    ax2.set_aspect('equal', 'box')
 
-    """
-    Contrinuously plot the map
-    """
     while not expl.stop:
         plt.pause(THREAD_SLEEP)
         ax0.cla() #clear the points from the previous iteration
         ax1.cla()
-        if expl.gridmap.data is not None and expl.gridmap_processed.data is not None: #grid
+        ax2.cla()
+        if expl.gridmap.data is not None and expl.gridmap_processed.data is not None and expl.gridmap_astar.data is not None: #grid
             expl.gridmap.plot(ax0)
             expl.gridmap_processed.plot(ax1)
+            expl.gridmap_astar.plot(ax2)
         if expl.robot.odometry_.pose is not None: #robot
             ax0.scatter(expl.robot.odometry_.pose.position.x, expl.robot.odometry_.pose.position.y,c='black', s=150, marker='x')
             ax1.scatter(expl.robot.odometry_.pose.position.x, expl.robot.odometry_.pose.position.y,c='black', s=150, marker='x')
+            ax2.scatter(expl.robot.odometry_.pose.position.x, expl.robot.odometry_.pose.position.y,c='black', s=150, marker='x')
         if expl.path is not None and expl.path_simple is not None: #path
             expl.path.plot(ax0, style = 'point')
             expl.path.plot(ax1, style = 'point')
+            expl.path.plot(ax2, style = 'point')
         if expl.nav_goal is not None: #frontier
             ax0.scatter(expl.nav_goal.position.x, expl.nav_goal.position.y,c='red', s=150, marker='x')
             ax1.scatter(expl.nav_goal.position.x, expl.nav_goal.position.y,c='red', s=150, marker='x')
-
+            ax2.scatter(expl.nav_goal.position.x, expl.nav_goal.position.y,c='red', s=150, marker='x')
         for frontier_tuple in expl.frontiers: #frontiers
             frontier = frontier_tuple[0]
             ax0.scatter(frontier.position.x, frontier.position.y,c='red')
             ax1.scatter(frontier.position.x, frontier.position.y,c='red')
+            ax2.scatter(frontier.position.x, frontier.position.y,c='red')
         plt.show()
     expl.__del__() #turn it off
         

@@ -223,7 +223,7 @@ class HexapodExplorer:
         else:
             return None
 
-    def closest_frontier(self, start, frontiers,gridmap_processed):
+    def closest_frontier(self, start, frontiers, gridmap_processed):
         '''
         Return the closest frontier from the list of frontiers
         '''
