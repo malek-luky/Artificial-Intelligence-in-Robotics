@@ -20,9 +20,7 @@ import heapq
 import skimage.measure as skm
 from sklearn.cluster import KMeans
 np.set_printoptions(threshold=sys.maxsize)  # print full numpy array
-sys.path.append('../')
-sys.path.append('hexapod_robot')
-import HexapodRobotConst as Constants
+from hexapod_robot.HexapodRobotConst import *
 
 # PRIORITY QUEUE
 class PriorityQueue:
@@ -174,13 +172,10 @@ class HexapodExplorer:
         if type(point) == Vector3:
             point = (point.x, point.y)
         else:
-            point = (point[0], point[1])
+            point = (point[0], point[1]) #possible floating point error
         map_origin = np.array([grid_map.origin.position.x, grid_map.origin.position.y])
         res = (point - map_origin) / grid_map.resolution
-        return tuple(np.round(res).astype(int))
-
-        # def world_to_map(self, p, grid_origin, grid_resolution):
-        #     return np.round((p - grid_origin) / grid_resolution).astype(int)    
+        return tuple(np.round(res).astype(int))   
 
     def map_to_world(self, coordinates, grid_map):
         '''
@@ -251,7 +246,7 @@ class HexapodExplorer:
         sy = -1 if y0 > y1 else 1
         if dx > dy:
             err = dx / 2.0
-            while x != x1:
+            while np.round(x) != np.round(x1): #floating point error?
                 line.append((x,y))
                 err -= dy
                 if err < 0:
@@ -260,7 +255,7 @@ class HexapodExplorer:
                 x += sx
         else:
             err = dy / 2.0
-            while y != y1:
+            while np.round(y) != np.round(y1): #floating point error?
                 line.append((x,y))
                 err -= dx
                 if err < 0:
@@ -285,78 +280,6 @@ class HexapodExplorer:
         plt.ylabel('y[m]')
         plt.title("pixel_plot")
         plt.show()
-
-    def fuse_laser_scan2(self, grid_map: OccupancyGrid, laser_scan: LaserScan, odometry: Odometry) -> OccupancyGrid:
-        """
-        Method to fuse the laser scan data sampled by the robot with a given 
-        odometry into the probabilistic occupancy grid map
-
-        Args:
-            grid_map_update: OccupancyGrid - gridmap to fuse te laser scan to
-            laser_scan: LaserScan - laser scan perceived by the robot
-            odometry: Odometry - perceived odometry of the robot
-        Returns:
-            grid_map_update: OccupancyGrid - gridmap updated with the laser scan data
-        """
-        grid_map_update = copy.deepcopy(grid_map)
-
-        if laser_scan is None or odometry is None:
-            return grid_map_update
-
-        laserscan_points: [float] = laser_scan.distances.copy()
-        robot_position = np.array([odometry.pose.position.x, odometry.pose.position.y])  # just x,y
-        robot_rotation_matrix = odometry.pose.orientation.to_R()[0:2, 0:2]
-        grid_origin = np.array([grid_map.origin.position.x, grid_map.origin.position.y])
-        robot_position_cell = self.world_to_map(robot_position, grid_map)
-
-        for i in range(0, len(laserscan_points)):
-            if laserscan_points[i] < laser_scan.range_min: laserscan_points[i] = laser_scan.range_min
-            if laserscan_points[i] > laser_scan.range_max: laserscan_points[i] = laser_scan.range_max
-            angle = laser_scan.angle_min + i * laser_scan.angle_increment
-            laserscan_points[i] = np.array([math.cos(angle) * laserscan_points[i], math.sin(angle) * laserscan_points[i]])
-            laserscan_points[i] = robot_rotation_matrix @ np.transpose(laserscan_points[i]) + robot_position
-            laserscan_points[i] = self.world_to_map(laserscan_points[i], grid_map)
-
-        data = None
-        if grid_map.data is not None:
-            data = grid_map.data.reshape(grid_map.height, grid_map.width)
-
-        for x, y in laserscan_points + [robot_position_cell]:
-            if x < 0 or y < 0 or data is None or x >= grid_map.width or y >= grid_map.height:
-                x_shift = min(0, x)     # negative coordinate -> we need to shift the origin
-                y_shift = min(0, y)
-                new_width = max(grid_map.width if data is not None else 0, x+1) - x_shift   # total span
-                new_height = max(grid_map.height if data is not None else 0, y+1) - y_shift
-                new_origin = grid_origin + np.array([x_shift, y_shift]) * grid_map.resolution
-                new_data = 0.5 * np.ones((new_height, new_width))
-                if data is not None:
-                    new_data[-y_shift:-y_shift+grid_map.height, -x_shift:-x_shift+grid_map.width] = data
-
-                grid_map_update.width = new_width
-                grid_map_update.height = new_height
-                grid_map_update.origin = Pose(Vector3(new_origin[0], new_origin[1], 0.0), Quaternion(1, 0, 0, 0))
-                grid_map_update.data = new_data.flatten()
-                return self.fuse_laser_scan(grid_map_update, laser_scan, odometry)
-
-        free_points = []
-        occupied_points = []
-
-        for scan_cell in laserscan_points:
-            free_points.extend(self.bresenham_line(robot_position_cell, scan_cell))    # points on line are free
-            occupied_points.append(scan_cell)                                          # point at the end is occupied
-
-        # Bayesian update
-
-        for (x, y) in free_points:
-            data[y, x] = self.update_free(data[y, x])
-
-        for (x, y) in occupied_points:
-            data[y, x] = self.update_occupied(data[y, x])
-
-        # serialize the data back (!watch for the correct width and height settings if you are doing the harder assignment)
-        grid_map_update.data = data.flatten()
-
-        return grid_map_update
 
     def fuse_laser_scan(self, grid_map, laser_scan, odometry):
         """
@@ -385,7 +308,6 @@ class HexapodExplorer:
                 '''
                 if laserscan_sector_value < laser_scan.range_min or laserscan_sector_value > laser_scan.range_max:
                     continue # ignore invalid laserscan values
-                laserscan_sector_value = laser_scan.range_max
                 theta_i = alpha_min + laserscan_sector*laser_scan.angle_increment
                 point_x = laserscan_sector_value*np.cos(theta_i)
                 point_y = laserscan_sector_value*np.sin(theta_i)
@@ -505,7 +427,7 @@ class HexapodExplorer:
         path_simple.poses.pop(0) # remove the start pose
         return path_simple
 
-    def find_free_edge_frontiers_f1(self, grid_map):
+    def find_free_edge_frontiers(self, grid_map):
         """
         Method to find the free-edge frontiers (edge clusters between the free and unknown areas)
 
@@ -514,8 +436,7 @@ class HexapodExplorer:
         Returns:
             pose_list: Pose[] - list of selected frontiers
         """
-        LASER_MAX_RANGE = 10.0 #laser_scan.range_max
-        LASER_MIN_RANGE = 0.01 #laser_scan.range_min
+
         data = copy.deepcopy(grid_map.data)
         data[data == 0.5] = 10
         mask = np.array([[1, 1, 1], [1, 0, 1], [1, 1, 1]])
@@ -543,93 +464,73 @@ class HexapodExplorer:
                     cluster[label].append((x, y))
         pose_list = []
         for label, items in cluster.items():
-            # f = len(items)
-            # D = LASER_MAX_RANGE / grid_map.resolution
-            # n_r = int(1 + np.floor(f/D + 0.5))
-            # kmeans = KMeans(n_clusters=n_r, random_state=0, tol=1e-3, n_init=1, max_iter=100).fit(items)
-            # for centroid in kmeans.cluster_centers_:
-            #     pose_list.append(self.map_to_world(centroid, grid_map))
+            """
+            f1 Implementation
+            """
+            # centroid = (0, 0)
+            # for item in items:
+            #     centroid = (centroid[0]+item[0], centroid[1]+item[1])
+            # centroid = (centroid[0]/len(items), centroid[1]/len(items))
+            # pose = self.map_to_world(
+            #     [centroid[0], centroid[1]], grid_map)
+            # pose_list.append(pose)
 
-            centroid = (0, 0)
-            for item in items:
-                centroid = (centroid[0]+item[0], centroid[1]+item[1])
-            centroid = (centroid[0]/len(items), centroid[1]/len(items))
-            pose = self.map_to_world(
-                [centroid[0], centroid[1]], grid_map)
-            pose_list.append(pose)
+            """
+            f2 Implementation
+            """
+            f = len(items)
+            D = LASER_MAX_RANGE / grid_map.resolution
+            n_r = np.floor(f/D + 0.5) +1
+            kmeans = KMeans(n_clusters=int(n_r), max_iter=70, tol=1e-2, n_init=1).fit(items)
+            for centroid in kmeans.cluster_centers_:
+                pose_list.append(self.map_to_world(centroid, grid_map))
         return pose_list
 
-    def find_free_edge_frontiers_f2(self, grid_map):
-        """Method to find the free-edge frontiers (edge clusters between the free and unknown areas)
+    def find_inf_frontiers(self, grid_map):
+        """
+        f3 Implementation
+        Method to find the information frontiers (frontiers with the highest information gain)
         Args:
             grid_map: OccupancyGrid - gridmap of the environment
         Returns:
             pose_list: Pose[] - list of selected frontiers
         """
-        LASER_MAX_RANGE = 10.0 #laser_scan.range_max
-        LASER_MIN_RANGE = 0.01 #laser_scan.range_min
 
-        # free-edge cell detection
-        gridMapP = self.grow_obstacles(grid_map, Constants.ROBOT_SIZE)
-        data = grid_map.data.copy().reshape(grid_map.height, grid_map.width)
-        dataP = gridMapP.data.reshape(grid_map.height, grid_map.width)
-
-        for x in range(0, data.shape[0]):
-            for y in range(0, data.shape[1]):
-                if data[x, y] == 0.5:
-                    data[x, y] = 10
-
-        mask = np.array([[1, 1, 1], [1, 0, 1], [1, 1, 1]])
-
-        data_c = ndimg.convolve(data, mask, mode='constant', cval=0.0)
-
-        for x in range(0, data_c.shape[1]):
-            for y in range(0, data_c.shape[0]):
-                if data[y, x] < 0.5 and 10 <= data_c[y, x] < 50 and dataP[y, x] == 0:    # cell is free-edge
-                    data[y, x] = 1
+        # Calculate entropy of each cell in the grid
+        H = grid_map.data.copy()
+        for row,row_val in enumerate(H):
+            for col,col_val in enumerate(row_val): 
+                p = H[row][col]
+                if p == 0 or p == 1:
+                    H[row][col] = 0
                 else:
-                    data[y, x] = 0
+                    H[row][col] = -p * np.log(p) - (1-p) * np.log(1-p)
 
-        # free-edge clustering
+        # Find free frontiers
+        frontiers = self.find_free_edge_frontiers(grid_map)
 
-        labeled_image, num_labels = skm.label(data, connectivity=2, return_num=True)
+        # Calculate information gain of each frontier
+        frontiers_weighted = []
+        rays = 8
+        for frontier in frontiers:
+            frontier_cell = self.world_to_map(frontier.position, grid_map)
 
-        clusters = {}
+            # Calculate information gain along 8 rays from the frontier
+            I_action = 0.0
+            for i in range(rays):
+                ray_end_pose = Pose()
+                ray_end_pose.position.x = frontier.position.x + math.cos(i * math.pi/rays) * LASER_MAX_RANGE
+                ray_end_pose.position.y = frontier.position.y + math.sin(i * math.pi/rays) * LASER_MAX_RANGE
+                ray_end_cell = self.world_to_map(ray_end_pose.position, grid_map)
+                ray = self.bresenham_line(frontier_cell, ray_end_cell)
 
-        for label in range(1, num_labels+1):
-            clusters[label] = []
+                # Accumulate information gain along the ray
+                for x, y in ray:
+                    if x < 0 or x >= grid_map.width or y < 0 or y >= grid_map.height:
+                        break    # ray reaches map bounds
+                    if grid_map.data[y, x] == 1:
+                        break    # ray reaches obstacle
+                    I_action += H[y, x]
+            frontiers_weighted.append((frontier, I_action))
 
-        for x in range(0, labeled_image.shape[1]):
-            for y in range(0, labeled_image.shape[0]):
-                label = labeled_image[y, x]
-                if label != 0:
-                    clusters[label].append((x, y))
-
-        # free-edge centroids
-
-        pose_list = []
-
-        for label, cells in clusters.items():
-            f = len(cells)
-            D = LASER_MAX_RANGE / grid_map.resolution
-            n_r = int(1 + np.floor(f/D + 0.5))
-            kmeans = KMeans(n_clusters=n_r, random_state=0, tol=1e-3, n_init=1, max_iter=100).fit(cells)
-            for centroid in kmeans.cluster_centers_:
-                if dataP[int(centroid[1]), int(centroid[0])] == 0:           # if centroid is reachable
-                    pose_list.append(self.map_to_world(centroid, grid_map))
-                else:
-                    closest = min(cells, key=lambda cell: self.distance(cell, centroid))   # closest reachable free-edge
-                    pose_list.append(self.map_to_world(closest, grid_map))
-
-            # t1e
-            #centroid = (0, 0)
-            #for cell in cells:
-            #    centroid = (centroid[0] + cell[0], centroid[1] + cell[1])
-            #centroid = (centroid[0] / len(cells), centroid[1] / len(cells))
-
-            #pose = Pose()
-            #pose.position.x = centroid[0] * grid_map.resolution + grid_map.origin.position.x
-            #pose.position.y = centroid[1] * grid_map.resolution + grid_map.origin.position.y
-            #pose_list.append(pose)
-
-        return pose_list
+        return frontiers_weighted

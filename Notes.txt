@@ -44,6 +44,8 @@ TODO
 -pridat ze robot resi pouze cesty kde prvn ibod je pred nim
 -zmenit sleep 0.3
 -novy setup prekazek aby byla videt dynamicka alokace mapy
+-stop pohyb kdyz hleda nove frontiery
+-jakmile to nekolik iteraci po sobe nenajde novou cestu, vypnout
 
 SEMESTER PROJECTS NOTES
 -v copelii nejlip funguje very fast + ODE +100ms, ale muze byt nahodou...
@@ -56,6 +58,16 @@ SEMESTER PROJECTS NOTES
 -green cross goal
 -pri kolizi se zrusi goto
 -vypnute dubins vozitko, toci se na miste
+-kmeans minimalizuji ctvercovy rozdil na hledani rozdílů
+-f3
+	-kolem kazdeho frontieru kruznice dle vzdalenosti senzoru
+	-zjsitime entropii, nejlepsi hodnota v 0.5
+	-pak vybereme frontier ktery ma nejvetsi sumu
+	-jakmile je bod daleko/blizko/za prekazkou, tak to neuvazujeme
+
+TROUBLESHOOTING
+-neigbors error: restart simulation
+-lag pri hledani frontierů: nutny restart, nejaky brouk kteremu nemohu prijit na kloub, nestava se casto
 
 NAPADY NA ZLEPSENI
 -pri kolizi zastavit robota
