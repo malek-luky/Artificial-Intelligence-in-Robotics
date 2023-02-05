@@ -202,6 +202,7 @@ class HexapodExplorer:
         cost_so_far[start] = 0
         came_from = dict()   # {(0, 0):None, (1, 2):(0, 1), ...}
         came_from[start] = None
+        print("A_star in")
         while frontier: # while not empty:
             current_pos = heapq.heappop(frontier)[1]
             if current_pos == goal:
@@ -216,6 +217,7 @@ class HexapodExplorer:
                     priority = new_cost + self.distance(next_pos, goal)
                     heapq.heappush(frontier, (priority, next_pos))
                     came_from[next_pos] = current_pos
+        print("A_star out")
         if current_pos == goal and start is not None and goal is not None:
             ret = self.format_path(path, came_from, grid_map, start, goal)
             return ret
@@ -249,6 +251,7 @@ class HexapodExplorer:
         Returns:
             (float64, float64) - interlying points between the start and goal coordinate
         """
+        print("IN")
         (x0, y0) = start
         (x1, y1) = goal
         x0 = int(x0)
@@ -281,6 +284,7 @@ class HexapodExplorer:
                 y += sy
         x = goal[0]
         y = goal[1]
+        print("OUT")
         return line
 
     def plot_graph(self, grid_map):
