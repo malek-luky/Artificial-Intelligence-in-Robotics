@@ -195,6 +195,8 @@ class HexapodExplorer:
         position [(x1, y1), (x2, y2), … ]. If there is no path, it should
         return None.
         '''
+        if start_pose==None or goal_pose==None or start_pose==goal_pose:
+            return None
         path = Path()
         frontier = list()
         start = self.world_to_map(start_pose.position, grid_map)

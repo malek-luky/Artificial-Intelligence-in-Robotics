@@ -46,6 +46,7 @@ import time
 import threading as thread
 import numpy as np
 import matplotlib.pyplot as plt
+import copy
  
 # IMPORT EHAXPOD CLASSES
 sys.path.append(&#39;../&#39;)
@@ -56,6 +57,7 @@ import HexapodExplorer
 from hexapod_robot.HexapodRobotConst import *
 from messages import *
 import pretty_errors
+from lkh.invoke_LKH import solve_TSP
 
 # CHOSE THE SETUP
 planning = &#34;p2&#34; #p2/p3
@@ -85,6 +87,7 @@ class Explorer:
         Initialize values
         &#34;&#34;&#34;
         self.frontiers = None
+        self.frontier = None
         self.path = None
         self.path_simple = None
         self.stop = False # stop condition for the threads
@@ -158,7 +161,7 @@ class Explorer:
             self.gridmap = self.explor.fuse_laser_scan(self.gridmap, self.robot.laser_scan_, self.robot.odometry_)
             self.gridmap.data = self.gridmap.data.reshape(self.gridmap.height, self.gridmap.width)
             self.gridmap_processed = self.explor.grow_obstacles(self.gridmap, ROBOT_SIZE)
-            self.gridmap_astar = self.explor.grow_obstacles(self.gridmap, ROBOT_SIZE+0.1) # extra safety margin so we dont recalculate the path too often
+            self.gridmap_astar = self.explor.grow_obstacles(self.gridmap, ROBOT_SIZE+0.13) # extra safety margin so we dont recalculate the path too often
         print(time.strftime(&#34;%H:%M:%S&#34;),&#34;Mapping thread terminated successfully!&#34;)
             
 
@@ -182,8 +185,17 @@ class Explorer:
                         self.collision = True
                         self.path_simple = None
                         self.path = None
+                        self.frontier = None
                         print(time.strftime(&#34;%H:%M:%S&#34;),&#34;Collision detected! Rerouting...&#34;)
                         break
+
+            &#34;&#34;&#34;
+            Check for timeout
+            &#34;&#34;&#34;
+            if timeout &gt; 10:
+                self.stop = True
+                print(time.strftime(&#34;%H:%M:%S&#34;),&#34;No frontiers found 10 times in a row, stopping...&#34;)
+
             &#34;&#34;&#34;
             Reroute only if collision is detected or if the goal is reached
             &#34;&#34;&#34;
@@ -207,12 +219,8 @@ class Explorer:
             self.frontiers = self.explor.remove_frontiers(self.gridmap_astar, self.frontiers) # remove frontiers in obstacles
             if len(self.frontiers) ==0:
                 timeout+=1
-                print(time.strftime(&#34;%H:%M:%S&#34;),&#34;No frontiers found&#34;)
-                if timeout &gt; 10:
-                    self.stop = True
-                    print(time.strftime(&#34;%H:%M:%S&#34;),&#34;No frontiers found 10 times in a row, stopping...&#34;)
-                continue
-            timeout = 0
+                print(time.strftime(&#34;%H:%M:%S&#34;),&#34;No frontiers found. Timeout: &#34;, timeout,&#34;/10&#34;)
+                continue #skip the frontier selection
             start = self.robot.odometry_.pose
 
             &#34;&#34;&#34;
@@ -224,11 +232,13 @@ class Explorer:
                 if self.path is not None:
                     print(time.strftime(&#34;%H:%M:%S&#34;),&#34;New shortest path found!&#34;)
                     self.path_simple = self.explor.simplify_path(self.gridmap_astar, self.path)
+                    timeout = 0
                 else:
                     self.path_simple = None
-                    print(time.strftime(&#34;%H:%M:%S&#34;),&#34;No new path without collision!&#34;)
+                    timeout+=1
+                    print(time.strftime(&#34;%H:%M:%S&#34;),&#34;No new path without collision! Timeout: &#34;, timeout,&#34;/10&#34;)
             &#34;&#34;&#34;
-            p2: Select the frontier with highest inforatino gain
+            p2: Select the frontier with highest inforation gain
             &#34;&#34;&#34;
             if planning == &#34;p2&#34;:
                 self.frontiers = sorted(self.frontiers, key=lambda x: x[1], reverse=True) #TODO: might be faster to just find the max
@@ -237,33 +247,43 @@ class Explorer:
                     if self.path is not None:
                         self.frontier = frontier[0]
                         self.path_simple = self.explor.simplify_path(self.gridmap_astar, self.path)
-                        print(time.strftime(&#34;%H:%M:%S&#34;),&#34;New shortest path found!&#34;)
+                        timeout = 0
+                        print(time.strftime(&#34;%H:%M:%S&#34;),&#34;New path with highest information gain found!&#34;)
                         break
                 if self.path is None:
                     self.path_simple = None
-                    print(time.strftime(&#34;%H:%M:%S&#34;),&#34;No new path without collision!&#34;)
+                    timeout+=1
+                    print(time.strftime(&#34;%H:%M:%S&#34;),&#34;No new path without collision! Timeout: &#34;, timeout,&#34;/10&#34;)
                     
             &#34;&#34;&#34;
             p3: Select the best route using Travel Salesman Problem and distance matrix
             &#34;&#34;&#34;
             if planning == &#34;p3&#34;:
-                distance_matrix = np.zeros((len(self.frontiers), len(self.frontiers)))
-                print(len(self.frontiers))
-                # if len(self.frontiers) == 1: 
-                #     goal = self.frontiers[0] #TODO: check if this is correct
-                #points = [odometry.pose] + self.frontiers
-                
-                for row in range(len(self.frontiers)):
-                    for col in range(1, len(self.frontiers)):     # to, because it&#39;s open-ended we keep first one zero
-                        path = self.explor.a_star(self.gridmap_astar, points[row], points[col])
-                        if path is not None:
-                            distance_matrix[row][col] = 999999
-                        else:
-                            distance_matrix[row][col] = len(path.poses)
-
-                sequence = solve_TSP(distance_matrix)
-                print(sequence)
-                goal = self.frontiers[sequence[1]-1]
+                if len(self.frontiers) == 1: # TSP cannot have dim &lt;3
+                    goal = self.frontiers[0]
+                else:
+                    TSP_matrix = copy.deepcopy(self.frontiers)
+                    TSP_matrix.insert(0, start)
+                    distance_matrix = np.zeros((len(TSP_matrix), len(TSP_matrix)))
+                    for row in range(len(TSP_matrix)): #rows are normqal
+                        for col in range(1, len(TSP_matrix)): #column must be zero as we do not loop back to the start (so called open-ended)
+                            path = self.explor.a_star(self.gridmap_astar, TSP_matrix[row], TSP_matrix[col])
+                            if path is None:
+                                distance_matrix[row][col] = 999999
+                            else:
+                                distance_matrix[row][col] = len(path.poses)
+                    TSP_result = solve_TSP(distance_matrix) #[0, 7, 6, 3, 5, 4, 1, 2] order hot to follow frontiers
+                    goal = TSP_matrix[TSP_result[1]] # first index so wwe skip the zero index, - because the frontiers are withotu domoetry positio
+                self.path = self.explor.a_star(self.gridmap_astar, start, goal)
+                if self.path is not None:
+                    self.frontier = goal
+                    self.path_simple = self.explor.simplify_path(self.gridmap_astar, self.path)
+                    timeout = 0
+                    print(time.strftime(&#34;%H:%M:%S&#34;),&#34;New best TSP path found!&#34;)
+                else:
+                    self.path_simple = None
+                    timeout+=1
+                    print(time.strftime(&#34;%H:%M:%S&#34;),&#34;No new path without collision! Timeout: &#34;, timeout,&#34;/10&#34;)
 
 
         print(time.strftime(&#34;%H:%M:%S&#34;),&#34;Planning thread terminated successfully!&#34;)
@@ -395,6 +415,7 @@ if __name__ == &#34;__main__&#34;:
         Initialize values
         &#34;&#34;&#34;
         self.frontiers = None
+        self.frontier = None
         self.path = None
         self.path_simple = None
         self.stop = False # stop condition for the threads
@@ -468,7 +489,7 @@ if __name__ == &#34;__main__&#34;:
             self.gridmap = self.explor.fuse_laser_scan(self.gridmap, self.robot.laser_scan_, self.robot.odometry_)
             self.gridmap.data = self.gridmap.data.reshape(self.gridmap.height, self.gridmap.width)
             self.gridmap_processed = self.explor.grow_obstacles(self.gridmap, ROBOT_SIZE)
-            self.gridmap_astar = self.explor.grow_obstacles(self.gridmap, ROBOT_SIZE+0.1) # extra safety margin so we dont recalculate the path too often
+            self.gridmap_astar = self.explor.grow_obstacles(self.gridmap, ROBOT_SIZE+0.13) # extra safety margin so we dont recalculate the path too often
         print(time.strftime(&#34;%H:%M:%S&#34;),&#34;Mapping thread terminated successfully!&#34;)
             
 
@@ -492,8 +513,17 @@ if __name__ == &#34;__main__&#34;:
                         self.collision = True
                         self.path_simple = None
                         self.path = None
+                        self.frontier = None
                         print(time.strftime(&#34;%H:%M:%S&#34;),&#34;Collision detected! Rerouting...&#34;)
                         break
+
+            &#34;&#34;&#34;
+            Check for timeout
+            &#34;&#34;&#34;
+            if timeout &gt; 10:
+                self.stop = True
+                print(time.strftime(&#34;%H:%M:%S&#34;),&#34;No frontiers found 10 times in a row, stopping...&#34;)
+
             &#34;&#34;&#34;
             Reroute only if collision is detected or if the goal is reached
             &#34;&#34;&#34;
@@ -517,12 +547,8 @@ if __name__ == &#34;__main__&#34;:
             self.frontiers = self.explor.remove_frontiers(self.gridmap_astar, self.frontiers) # remove frontiers in obstacles
             if len(self.frontiers) ==0:
                 timeout+=1
-                print(time.strftime(&#34;%H:%M:%S&#34;),&#34;No frontiers found&#34;)
-                if timeout &gt; 10:
-                    self.stop = True
-                    print(time.strftime(&#34;%H:%M:%S&#34;),&#34;No frontiers found 10 times in a row, stopping...&#34;)
-                continue
-            timeout = 0
+                print(time.strftime(&#34;%H:%M:%S&#34;),&#34;No frontiers found. Timeout: &#34;, timeout,&#34;/10&#34;)
+                continue #skip the frontier selection
             start = self.robot.odometry_.pose
 
             &#34;&#34;&#34;
@@ -534,11 +560,13 @@ if __name__ == &#34;__main__&#34;:
                 if self.path is not None:
                     print(time.strftime(&#34;%H:%M:%S&#34;),&#34;New shortest path found!&#34;)
                     self.path_simple = self.explor.simplify_path(self.gridmap_astar, self.path)
+                    timeout = 0
                 else:
                     self.path_simple = None
-                    print(time.strftime(&#34;%H:%M:%S&#34;),&#34;No new path without collision!&#34;)
+                    timeout+=1
+                    print(time.strftime(&#34;%H:%M:%S&#34;),&#34;No new path without collision! Timeout: &#34;, timeout,&#34;/10&#34;)
             &#34;&#34;&#34;
-            p2: Select the frontier with highest inforatino gain
+            p2: Select the frontier with highest inforation gain
             &#34;&#34;&#34;
             if planning == &#34;p2&#34;:
                 self.frontiers = sorted(self.frontiers, key=lambda x: x[1], reverse=True) #TODO: might be faster to just find the max
@@ -547,33 +575,43 @@ if __name__ == &#34;__main__&#34;:
                     if self.path is not None:
                         self.frontier = frontier[0]
                         self.path_simple = self.explor.simplify_path(self.gridmap_astar, self.path)
-                        print(time.strftime(&#34;%H:%M:%S&#34;),&#34;New shortest path found!&#34;)
+                        timeout = 0
+                        print(time.strftime(&#34;%H:%M:%S&#34;),&#34;New path with highest information gain found!&#34;)
                         break
                 if self.path is None:
                     self.path_simple = None
-                    print(time.strftime(&#34;%H:%M:%S&#34;),&#34;No new path without collision!&#34;)
+                    timeout+=1
+                    print(time.strftime(&#34;%H:%M:%S&#34;),&#34;No new path without collision! Timeout: &#34;, timeout,&#34;/10&#34;)
                     
             &#34;&#34;&#34;
             p3: Select the best route using Travel Salesman Problem and distance matrix
             &#34;&#34;&#34;
             if planning == &#34;p3&#34;:
-                distance_matrix = np.zeros((len(self.frontiers), len(self.frontiers)))
-                print(len(self.frontiers))
-                # if len(self.frontiers) == 1: 
-                #     goal = self.frontiers[0] #TODO: check if this is correct
-                #points = [odometry.pose] + self.frontiers
-                
-                for row in range(len(self.frontiers)):
-                    for col in range(1, len(self.frontiers)):     # to, because it&#39;s open-ended we keep first one zero
-                        path = self.explor.a_star(self.gridmap_astar, points[row], points[col])
-                        if path is not None:
-                            distance_matrix[row][col] = 999999
-                        else:
-                            distance_matrix[row][col] = len(path.poses)
-
-                sequence = solve_TSP(distance_matrix)
-                print(sequence)
-                goal = self.frontiers[sequence[1]-1]
+                if len(self.frontiers) == 1: # TSP cannot have dim &lt;3
+                    goal = self.frontiers[0]
+                else:
+                    TSP_matrix = copy.deepcopy(self.frontiers)
+                    TSP_matrix.insert(0, start)
+                    distance_matrix = np.zeros((len(TSP_matrix), len(TSP_matrix)))
+                    for row in range(len(TSP_matrix)): #rows are normqal
+                        for col in range(1, len(TSP_matrix)): #column must be zero as we do not loop back to the start (so called open-ended)
+                            path = self.explor.a_star(self.gridmap_astar, TSP_matrix[row], TSP_matrix[col])
+                            if path is None:
+                                distance_matrix[row][col] = 999999
+                            else:
+                                distance_matrix[row][col] = len(path.poses)
+                    TSP_result = solve_TSP(distance_matrix) #[0, 7, 6, 3, 5, 4, 1, 2] order hot to follow frontiers
+                    goal = TSP_matrix[TSP_result[1]] # first index so wwe skip the zero index, - because the frontiers are withotu domoetry positio
+                self.path = self.explor.a_star(self.gridmap_astar, start, goal)
+                if self.path is not None:
+                    self.frontier = goal
+                    self.path_simple = self.explor.simplify_path(self.gridmap_astar, self.path)
+                    timeout = 0
+                    print(time.strftime(&#34;%H:%M:%S&#34;),&#34;New best TSP path found!&#34;)
+                else:
+                    self.path_simple = None
+                    timeout+=1
+                    print(time.strftime(&#34;%H:%M:%S&#34;),&#34;No new path without collision! Timeout: &#34;, timeout,&#34;/10&#34;)
 
 
         print(time.strftime(&#34;%H:%M:%S&#34;),&#34;Planning thread terminated successfully!&#34;)
@@ -632,7 +670,7 @@ if __name__ == &#34;__main__&#34;:
         self.gridmap = self.explor.fuse_laser_scan(self.gridmap, self.robot.laser_scan_, self.robot.odometry_)
         self.gridmap.data = self.gridmap.data.reshape(self.gridmap.height, self.gridmap.width)
         self.gridmap_processed = self.explor.grow_obstacles(self.gridmap, ROBOT_SIZE)
-        self.gridmap_astar = self.explor.grow_obstacles(self.gridmap, ROBOT_SIZE+0.1) # extra safety margin so we dont recalculate the path too often
+        self.gridmap_astar = self.explor.grow_obstacles(self.gridmap, ROBOT_SIZE+0.13) # extra safety margin so we dont recalculate the path too often
     print(time.strftime(&#34;%H:%M:%S&#34;),&#34;Mapping thread terminated successfully!&#34;)</code></pre>
 </details>
 </dd>
@@ -665,8 +703,17 @@ if __name__ == &#34;__main__&#34;:
                     self.collision = True
                     self.path_simple = None
                     self.path = None
+                    self.frontier = None
                     print(time.strftime(&#34;%H:%M:%S&#34;),&#34;Collision detected! Rerouting...&#34;)
                     break
+
+        &#34;&#34;&#34;
+        Check for timeout
+        &#34;&#34;&#34;
+        if timeout &gt; 10:
+            self.stop = True
+            print(time.strftime(&#34;%H:%M:%S&#34;),&#34;No frontiers found 10 times in a row, stopping...&#34;)
+
         &#34;&#34;&#34;
         Reroute only if collision is detected or if the goal is reached
         &#34;&#34;&#34;
@@ -690,12 +737,8 @@ if __name__ == &#34;__main__&#34;:
         self.frontiers = self.explor.remove_frontiers(self.gridmap_astar, self.frontiers) # remove frontiers in obstacles
         if len(self.frontiers) ==0:
             timeout+=1
-            print(time.strftime(&#34;%H:%M:%S&#34;),&#34;No frontiers found&#34;)
-            if timeout &gt; 10:
-                self.stop = True
-                print(time.strftime(&#34;%H:%M:%S&#34;),&#34;No frontiers found 10 times in a row, stopping...&#34;)
-            continue
-        timeout = 0
+            print(time.strftime(&#34;%H:%M:%S&#34;),&#34;No frontiers found. Timeout: &#34;, timeout,&#34;/10&#34;)
+            continue #skip the frontier selection
         start = self.robot.odometry_.pose
 
         &#34;&#34;&#34;
@@ -707,11 +750,13 @@ if __name__ == &#34;__main__&#34;:
             if self.path is not None:
                 print(time.strftime(&#34;%H:%M:%S&#34;),&#34;New shortest path found!&#34;)
                 self.path_simple = self.explor.simplify_path(self.gridmap_astar, self.path)
+                timeout = 0
             else:
                 self.path_simple = None
-                print(time.strftime(&#34;%H:%M:%S&#34;),&#34;No new path without collision!&#34;)
+                timeout+=1
+                print(time.strftime(&#34;%H:%M:%S&#34;),&#34;No new path without collision! Timeout: &#34;, timeout,&#34;/10&#34;)
         &#34;&#34;&#34;
-        p2: Select the frontier with highest inforatino gain
+        p2: Select the frontier with highest inforation gain
         &#34;&#34;&#34;
         if planning == &#34;p2&#34;:
             self.frontiers = sorted(self.frontiers, key=lambda x: x[1], reverse=True) #TODO: might be faster to just find the max
@@ -720,33 +765,43 @@ if __name__ == &#34;__main__&#34;:
                 if self.path is not None:
                     self.frontier = frontier[0]
                     self.path_simple = self.explor.simplify_path(self.gridmap_astar, self.path)
-                    print(time.strftime(&#34;%H:%M:%S&#34;),&#34;New shortest path found!&#34;)
+                    timeout = 0
+                    print(time.strftime(&#34;%H:%M:%S&#34;),&#34;New path with highest information gain found!&#34;)
                     break
             if self.path is None:
                 self.path_simple = None
-                print(time.strftime(&#34;%H:%M:%S&#34;),&#34;No new path without collision!&#34;)
+                timeout+=1
+                print(time.strftime(&#34;%H:%M:%S&#34;),&#34;No new path without collision! Timeout: &#34;, timeout,&#34;/10&#34;)
                 
         &#34;&#34;&#34;
         p3: Select the best route using Travel Salesman Problem and distance matrix
         &#34;&#34;&#34;
         if planning == &#34;p3&#34;:
-            distance_matrix = np.zeros((len(self.frontiers), len(self.frontiers)))
-            print(len(self.frontiers))
-            # if len(self.frontiers) == 1: 
-            #     goal = self.frontiers[0] #TODO: check if this is correct
-            #points = [odometry.pose] + self.frontiers
-            
-            for row in range(len(self.frontiers)):
-                for col in range(1, len(self.frontiers)):     # to, because it&#39;s open-ended we keep first one zero
-                    path = self.explor.a_star(self.gridmap_astar, points[row], points[col])
-                    if path is not None:
-                        distance_matrix[row][col] = 999999
-                    else:
-                        distance_matrix[row][col] = len(path.poses)
-
-            sequence = solve_TSP(distance_matrix)
-            print(sequence)
-            goal = self.frontiers[sequence[1]-1]
+            if len(self.frontiers) == 1: # TSP cannot have dim &lt;3
+                goal = self.frontiers[0]
+            else:
+                TSP_matrix = copy.deepcopy(self.frontiers)
+                TSP_matrix.insert(0, start)
+                distance_matrix = np.zeros((len(TSP_matrix), len(TSP_matrix)))
+                for row in range(len(TSP_matrix)): #rows are normqal
+                    for col in range(1, len(TSP_matrix)): #column must be zero as we do not loop back to the start (so called open-ended)
+                        path = self.explor.a_star(self.gridmap_astar, TSP_matrix[row], TSP_matrix[col])
+                        if path is None:
+                            distance_matrix[row][col] = 999999
+                        else:
+                            distance_matrix[row][col] = len(path.poses)
+                TSP_result = solve_TSP(distance_matrix) #[0, 7, 6, 3, 5, 4, 1, 2] order hot to follow frontiers
+                goal = TSP_matrix[TSP_result[1]] # first index so wwe skip the zero index, - because the frontiers are withotu domoetry positio
+            self.path = self.explor.a_star(self.gridmap_astar, start, goal)
+            if self.path is not None:
+                self.frontier = goal
+                self.path_simple = self.explor.simplify_path(self.gridmap_astar, self.path)
+                timeout = 0
+                print(time.strftime(&#34;%H:%M:%S&#34;),&#34;New best TSP path found!&#34;)
+            else:
+                self.path_simple = None
+                timeout+=1
+                print(time.strftime(&#34;%H:%M:%S&#34;),&#34;No new path without collision! Timeout: &#34;, timeout,&#34;/10&#34;)
 
 
     print(time.strftime(&#34;%H:%M:%S&#34;),&#34;Planning thread terminated successfully!&#34;)</code></pre>

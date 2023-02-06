@@ -12,5 +12,5 @@ for soup in soups:
     merged_soup.append(soup)
 
 # Write the merged content to a new file
-with open("merged_documentation.html", "w") as outfile:
+with open("../Documentation.html", "w") as outfile:
     outfile.write(str(merged_soup))
