@@ -25,7 +25,7 @@ import pretty_errors
 from lkh.invoke_LKH import solve_TSP
 
 # CHOSE THE SETUP
-planning = "p2" #p2/p3
+planning = "p1" #p2/p3
 
 
  
@@ -36,17 +36,16 @@ class Explorer:
     """
     Class to represent an exploration agent
     """
-    def __init__(self, robotID = 0):
-        
-        """
-        Variables
-        """
-        print(time.strftime("%H:%M:%S"), self.__class__.__name__,"Initializing Explorer class...")
-        self.gridmap = OccupancyGrid()
-        self.gridmap.resolution = 0.1
-        self.gridmap.width = 2 #m2 - otherwise default is 100
-        self.gridmap.height = 2 #m2 - for m1 we need origin self.gridmap.origin = Pose(Vector3(-5.0,-5.0,0.0), Quaternion(1,0,0,0))
-        self.gridmap.data = 0.5*np.ones((self.gridmap.height,self.gridmap.width)) #unknown (grey) area
+
+    # Shared gridmap for all robots
+    gridmap = OccupancyGrid()
+    gridmap.resolution = 0.1
+    gridmap.width = 2 #m2 - otherwise default is 100
+    gridmap.height = 2 #m2 - for m1 we need origin self.gridmap.origin = Pose(Vector3(-5.0,-5.0,0.0), Quaternion(1,0,0,0))
+    gridmap.data = 0.5*np.ones((gridmap.height,gridmap.width)) #unknown (grey) area
+
+    def __init__(self, name, robotID = 0):
+        print(time.strftime("%H:%M:%S"),"Initializing Explorer class...",name)
 
         """
         Initialize values
@@ -58,6 +57,7 @@ class Explorer:
         self.stop = False # stop condition for the threads
         self.nav_goal = None
         self.collision = False
+        self.name = name
 
         """
         Connecting the simulator
@@ -69,7 +69,7 @@ class Explorer:
         """
         Connect to the robot
         """
-        print(time.strftime("%H:%M:%S"), self.__class__.__name__,"Starting threads...")
+        print(time.strftime("%H:%M:%S"), self.name,": ","Starting threads...")
         self.robot.turn_on()
  
         """
@@ -84,7 +84,7 @@ class Explorer:
             mapping_thread = thread.Thread(target=self.mapping)
             mapping_thread.start() 
         except:
-            print(time.strftime("%H:%M:%S"), self.__class__.__name__,"Error: unable to start mapping thread")
+            print(time.strftime("%H:%M:%S"), self.name,": ","Error: unable to start mapping thread")
             sys.exit(1)
  
         """
@@ -94,7 +94,7 @@ class Explorer:
             planning_thread = thread.Thread(target=self.planning)
             planning_thread.start() 
         except:
-            print(time.strftime("%H:%M:%S"), self.__class__.__name__,"Error: unable to start planning thread")
+            print(time.strftime("%H:%M:%S"), self.name,": ","Error: unable to start planning thread")
             sys.exit(1)
  
         """
@@ -104,7 +104,7 @@ class Explorer:
             traj_follow_thread = thread.Thread(target=self.trajectory_following)
             traj_follow_thread.start() 
         except:
-            print(time.strftime("%H:%M:%S"), self.__class__.__name__,"Error: unable to start planning thread")
+            print(time.strftime("%H:%M:%S"), self.name,": ","Error: unable to start planning thread")
             sys.exit(1)
  
     def __del__(self):
@@ -123,11 +123,11 @@ class Explorer:
             Obstacle growing: p1
             """
             time.sleep(THREAD_SLEEP)
-            self.gridmap = self.explor.fuse_laser_scan(self.gridmap, self.robot.laser_scan_, self.robot.odometry_)
-            self.gridmap.data = self.gridmap.data.reshape(self.gridmap.height, self.gridmap.width)
+            self.__class__.gridmap = self.explor.fuse_laser_scan(self.gridmap, self.robot.laser_scan_, self.robot.odometry_)
+            self.__class__.gridmap.data = self.gridmap.data.reshape(self.gridmap.height, self.gridmap.width)
             self.gridmap_processed = self.explor.grow_obstacles(self.gridmap, ROBOT_SIZE)
             self.gridmap_astar = self.explor.grow_obstacles(self.gridmap, ROBOT_SIZE+0.13) # extra safety margin so we dont recalculate the path too often
-        print(time.strftime("%H:%M:%S"), self.__class__.__name__,"Mapping thread terminated successfully!")
+        print(time.strftime("%H:%M:%S"), self.name,": ","Mapping thread terminated successfully!")
             
 
     def planning(self):
@@ -151,15 +151,15 @@ class Explorer:
                         self.path_simple = None
                         self.path = None
                         self.frontier = None
-                        print(time.strftime("%H:%M:%S"), self.__class__.__name__,"Collision detected! Rerouting...")
+                        print(time.strftime("%H:%M:%S"), self.name,": ","Collision detected! Rerouting...")
                         break
 
             """
             Check for timeout
             """
-            if timeout > 10:
+            if timeout > 20:
                 self.stop = True
-                print(time.strftime("%H:%M:%S"), self.__class__.__name__,"No frontiers found 10 times in a row, stopping...")
+                print(time.strftime("%H:%M:%S"), self.name,": ","No frontiers found 20 times in a row, stopping...")
 
             """
             Reroute only if collision is detected or if the goal is reached
@@ -184,7 +184,7 @@ class Explorer:
             self.frontiers = self.explor.remove_frontiers(self.gridmap_astar, self.frontiers) # remove frontiers in obstacles
             if len(self.frontiers) ==0:
                 timeout+=1
-                print(time.strftime("%H:%M:%S"), self.__class__.__name__,"No frontiers found. Timeout: ", timeout,"/10")
+                print(time.strftime("%H:%M:%S"), self.name,": ","No frontiers found. Timeout: ", timeout,"/20")
                 continue #skip the frontier selection
             start = self.robot.odometry_.pose
 
@@ -195,13 +195,13 @@ class Explorer:
                 self.frontier = self.explor.closest_frontier(start, self.frontiers, self.gridmap_astar)
                 self.path = self.explor.a_star(self.gridmap_astar, start, self.frontier) #we know that frontier is reachable
                 if self.path is not None:
-                    print(time.strftime("%H:%M:%S"), self.__class__.__name__,"New shortest path found!")
+                    print(time.strftime("%H:%M:%S"), self.name,": ","New shortest path found!")
                     self.path_simple = self.explor.simplify_path(self.gridmap_astar, self.path)
                     timeout = 0
                 else:
                     self.path_simple = None
                     timeout+=1
-                    print(time.strftime("%H:%M:%S"), self.__class__.__name__,"No new path without collision! Timeout: ", timeout,"/10")
+                    print(time.strftime("%H:%M:%S"), self.name,": ","No new path without collision! Timeout: ", timeout,"/20")
             """
             p2: Select the frontier with highest inforation gain
             """
@@ -213,12 +213,12 @@ class Explorer:
                         self.frontier = frontier[0]
                         self.path_simple = self.explor.simplify_path(self.gridmap_astar, self.path)
                         timeout = 0
-                        print(time.strftime("%H:%M:%S"), self.__class__.__name__,"New path with highest information gain found!")
+                        print(time.strftime("%H:%M:%S"), self.name,": ","New path with highest information gain found!")
                         break
                 if self.path is None:
                     self.path_simple = None
                     timeout+=1
-                    print(time.strftime("%H:%M:%S"), self.__class__.__name__,"No new path without collision! Timeout: ", timeout,"/10")
+                    print(time.strftime("%H:%M:%S"), self.name,": ","No new path without collision! Timeout: ", timeout,"/20")
                     
             """
             p3: Select the best route using Travel Salesman Problem and distance matrix
@@ -244,14 +244,14 @@ class Explorer:
                     self.frontier = goal
                     self.path_simple = self.explor.simplify_path(self.gridmap_astar, self.path)
                     timeout = 0
-                    print(time.strftime("%H:%M:%S"), self.__class__.__name__,"New best TSP path found!")
+                    print(time.strftime("%H:%M:%S"), self.name,": ","New best TSP path found!")
                 else:
                     self.path_simple = None
                     timeout+=1
-                    print(time.strftime("%H:%M:%S"), self.__class__.__name__,"No new path without collision! Timeout: ", timeout,"/10")
+                    print(time.strftime("%H:%M:%S"), self.name,": ","No new path without collision! Timeout: ", timeout,"/20")
 
 
-        print(time.strftime("%H:%M:%S"), self.__class__.__name__,"Planning thread terminated successfully!")
+        print(time.strftime("%H:%M:%S"), self.name,": ","Planning thread terminated successfully!")
 
 
  
@@ -270,12 +270,12 @@ class Explorer:
                     self.robot.stop() #stop robot
                     self.path_simple = None
                     self.path = None
-                    print(time.strftime("%H:%M:%S"), self.__class__.__name__, "Goal reached, waiting for new route")
+                    print(time.strftime("%H:%M:%S"), self.name,": ", "Goal reached, waiting for new route")
                 else: #cotninue with the old route
                     self.nav_goal = self.path_simple.poses.pop(0)
                     self.robot.goto(self.nav_goal)
-                    print(time.strftime("%H:%M:%S"), self.__class__.__name__,"Goto: ", self.nav_goal.position.x, self.nav_goal.position.y)        
-        print(time.strftime("%H:%M:%S"), self.__class__.__name__,"Trajectory following thread terminated successfully!")
+                    print(time.strftime("%H:%M:%S"), self.name,": ","Goto: ", self.nav_goal.position.x, self.nav_goal.position.y)        
+        print(time.strftime("%H:%M:%S"), self.name,": ","Trajectory following thread terminated successfully!")
             
  
  
@@ -283,8 +283,8 @@ if __name__ == "__main__":
     """
     Initiaite robot and start threads
     """
-    robot1 = Explorer(robotID = 0)
-    robot2 = Explorer(robotID = 1)
+    robot1 = Explorer("Petr ", robotID = 0, ) #space to match the the name length
+    robot2 = Explorer("Pavel",robotID = 1,)
     robot1.start()
     robot2.start()
     time.sleep(16*THREAD_SLEEP) #wait for everything to init
@@ -292,9 +292,11 @@ if __name__ == "__main__":
     """
     Initiate plotting
     """
-    fig, (ax0, ax1, ax2) = plt.subplots(nrows=3, ncols=1, figsize=(5,10))
-    fig, (ax3, ax4, ax5) = plt.subplots(nrows=3, ncols=1, figsize=(5,10))
+    fig1, (ax0, ax1, ax2) = plt.subplots(nrows=3, ncols=1, figsize=(5,10))
+    fig2, (ax3, ax4, ax5) = plt.subplots(nrows=3, ncols=1, figsize=(5,10))
     plt.ion()
+    fig1.suptitle("Petr")
+    fig2.suptitle("Pavel")
     ax0.set_xlabel('x[m]')
     ax0.set_ylabel('y[m]')
     ax1.set_xlabel('x[m]')
