@@ -19,6 +19,7 @@ import sys
 import heapq
 import skimage.measure as skm
 from sklearn.cluster import KMeans
+#from lkh.invoke_LKH import solve_TSP
 np.set_printoptions(threshold=sys.maxsize)  # print full numpy array
 from hexapod_robot.HexapodRobotConst import *
 
@@ -228,24 +229,26 @@ class HexapodExplorer:
         Return the closest frontier from the list of frontiers
         '''
         shortest_path = np.inf
-        ret_path = None
         ret_frontier = None
-        for frontier_tuple in frontiers:
-            frontier = frontier_tuple[0]
+        for frontier in frontiers:
             path = self.a_star(gridmap_processed, start, frontier)
             if path is not None and len(path.poses) < shortest_path:
-                ret_path = path
                 shortest_path = len(path.poses)
                 ret_frontier = frontier
-        return ret_path, ret_frontier
+        return ret_frontier
 
     def remove_frontiers(self, gridmap, frontiers):
         if frontiers is not None:
-            for frontier_tuple in frontiers: #remove frontiers which are in obstacle
-                frontier = frontier_tuple[0]
+            for frontier in frontiers: #remove frontiers which are in obstacle
+                if type(frontier) != Pose:
+                    frontier = frontier[0] #  where it contains also the information gain
                 (x,y) = self.world_to_map(frontier.position,gridmap)
                 if gridmap.data[y,x] == 1:
-                    frontiers = list(filter(lambda x: x != frontier_tuple, frontiers))
+                    if type(frontiers[0]) == Pose:
+                        frontiers = list(filter(lambda x: x != frontier, frontiers))
+                    else:
+                        frontiers = [item for item in frontiers if item[0] != frontier]
+                        
         return frontiers
 
     def bresenham_line(self, start, goal):

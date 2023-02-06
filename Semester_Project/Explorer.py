@@ -23,7 +23,7 @@ from messages import *
 import pretty_errors
 
 # CHOSE THE SETUP
-planning = "p1" #p2/p3
+planning = "p2" #p2/p3
 
 
  
@@ -152,14 +152,23 @@ class Explorer:
             """
             Reroute only if collision is detected or if the goal is reached
             """
-            self.frontiers = self.explor.remove_frontiers(self.gridmap_astar, self.frontiers) # remove frontiers in newly found obstacles
+            self.frontiers = self.explor.remove_frontiers(self.gridmap_astar, self.frontiers) # remove frontiers using newly found obstacles
             if not self.collision and self.path_simple is not None:# and (self.robot.navigation_goal is not None or len(self.path_simple.poses) == 0):
                 continue # look for frontiers only if collision or reached goal, don't look for frontiers last step before the goal
             
             """
-            f1+f2+f3: Find using heurestic and KMeans approach, each part is build on top of the other one: 
+            Find frontiers based on the chosen strategy
+            p1: only find the frontiers
+            p2: find frontiers and compute heuristic
+            p3: only find the frontiers
+            f1: only frontiers
+            f2: fronteirs + KMeans approach (default for p1 and p3)
+            f3: KMeans + information gain from each frontier
             """
-            self.frontiers = self.explor.find_inf_frontiers(self.gridmap) #find frontiers
+            if planning == "p1" or planning=="p3":
+                self.frontiers = self.explor.find_free_edge_frontiers(self.gridmap)
+            elif planning == "p2":
+                self.frontiers = self.explor.find_inf_frontiers(self.gridmap)
             self.frontiers = self.explor.remove_frontiers(self.gridmap_astar, self.frontiers) # remove frontiers in obstacles
             if len(self.frontiers) ==0:
                 timeout+=1
@@ -170,11 +179,13 @@ class Explorer:
                 continue
             timeout = 0
             start = self.robot.odometry_.pose
+
             """
             p1: Select closest frontier and find the path
             """
             if planning == "p1":
-                self.path, self.frontier = self.explor.closest_frontier(start, self.frontiers, self.gridmap_astar)
+                self.frontier = self.explor.closest_frontier(start, self.frontiers, self.gridmap_astar)
+                self.path = self.explor.a_star(self.gridmap_astar, start, self.frontier) #we know that frontier is reachable
                 if self.path is not None:
                     print(time.strftime("%H:%M:%S"),"New shortest path found!")
                     self.path_simple = self.explor.simplify_path(self.gridmap_astar, self.path)
@@ -182,10 +193,10 @@ class Explorer:
                     self.path_simple = None
                     print(time.strftime("%H:%M:%S"),"No new path without collision!")
             """
-            p2: Select closest frontier and find the path
+            p2: Select the frontier with highest inforatino gain
             """
             if planning == "p2":
-                self.frontiers = sorted(self.frontiers, key=lambda x: x[1], reverse=True)
+                self.frontiers = sorted(self.frontiers, key=lambda x: x[1], reverse=True) #TODO: might be faster to just find the max
                 for frontier in self.frontiers:
                     self.path = self.explor.a_star(self.gridmap_astar, start, frontier[0])
                     if self.path is not None:
@@ -198,8 +209,10 @@ class Explorer:
                     print(time.strftime("%H:%M:%S"),"No new path without collision!")
                     
             """
-            p3:
+            p3: Select the best route using Travel Salesman Problem and distance matrix
             """
+
+
         print(time.strftime("%H:%M:%S"),"Planning thread terminated successfully!")
 
 
@@ -212,10 +225,8 @@ class Explorer:
         while not self.stop: 
             time.sleep(THREAD_SLEEP)
             if self.collision: # collision - new route
-                print("HERE")
                 self.robot.stop() #stop robot
                 continue          
-            print(self.robot.navigation_goal, self.path_simple==None)
             if self.robot.navigation_goal is None and self.path_simple is not None:
                 if len(self.path_simple.poses)==0: #reached the goal
                     self.robot.stop() #stop robot
@@ -262,8 +273,9 @@ if __name__ == "__main__":
             expl.gridmap.plot(ax0)
             expl.gridmap_processed.plot(ax1)
             expl.gridmap_astar.plot(ax2)
-        for frontier_tuple in expl.frontiers: #frontiers
-            frontier = frontier_tuple[0]
+        for frontier in expl.frontiers: #frontiers
+            if type(frontier) != Pose:
+                frontier = frontier[0]
             ax0.scatter(frontier.position.x, frontier.position.y,c='red')
             ax1.scatter(frontier.position.x, frontier.position.y,c='red')
             ax2.scatter(frontier.position.x, frontier.position.y,c='red')

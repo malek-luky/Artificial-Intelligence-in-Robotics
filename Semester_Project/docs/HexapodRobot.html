@@ -1,0 +1,1065 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>HexapodRobot API documentation</title>
+<meta name="description" content="Project: Artificial Intelligence for Robotics
+Author: Lukas Malek
+Email: malek.luky@gmail.com
+Date: February 2023" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>HexapodRobot</code></h1>
+</header>
+<section id="section-intro">
+<p>Project: Artificial Intelligence for Robotics
+Author: Lukas Malek
+Email: malek.luky@gmail.com
+Date: February 2023</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#34;&#34;&#34;
+Project: Artificial Intelligence for Robotics
+Author: Lukas Malek
+Email: malek.luky@gmail.com
+Date: February 2023
+&#34;&#34;&#34;
+
+import math
+import time
+import numpy as np
+import threading as thread
+
+#hexapod robot 
+import hexapod_sim.HexapodHAL as hexapodhal
+
+#cpg network
+import cpg.oscilator_network as osc
+
+#import robot parameters
+from HexapodRobotConst import *
+
+#import controller
+import HexapodController as cntrl
+
+#import messages
+from messages import *
+
+class HexapodRobot:
+    def __init__(self, robot_id):
+        &#34;&#34;&#34;Hexapod controller class constructor
+        &#34;&#34;&#34;
+        #robotHAL instance
+        self.robot = hexapodhal.HexapodHAL(robot_id, TIME_FRAME)
+        #controller instance
+        self.controller = cntrl.HexapodController()
+        self.control_method = self.controller.goto
+
+        #gait parametrization
+        self.v_left = 0
+        self.v_right = 0
+        
+        #stride_length
+        self.stride_length = 1
+        #stride_height
+        self.stride_height = 1
+
+        #locomotion and navigation variables
+        self.locomotion_stop = False
+        self.locomotion_lock = thread.Lock()     #mutex for access to turn commands
+        self.locomotion_status = False
+
+        self.navigation_stop = False
+        self.navigation_lock = thread.Lock()   #mutex for access to navigation coordinates
+        self.navigation_status = False 
+        self.navigation_goal = None
+
+        #simulator data
+        self.odometry_ = None
+        self.collision_ = None
+        self.laser_scan_ = None
+
+    ########################################################################
+
+    def turn_on(self):
+        &#34;&#34;&#34;Method to drive the robot into the default position
+        &#34;&#34;&#34;
+        #read out the current pose of the robot
+        configuration = self.robot.get_all_servo_position()
+
+        #interpolate to the default position
+        INTERPOLATION_TIME = 3000 #ms
+        interpolation_steps = int(INTERPOLATION_TIME/TIME_FRAME)
+
+        speed = np.zeros(18)
+        for i in range(0,18):
+            speed[i] = (SERVOS_BASE[i]-configuration[i])/interpolation_steps
+        
+        #execute the motion
+        for t in range(0, interpolation_steps):
+            self.robot.set_all_servo_position(configuration + t*speed)
+
+
+    def turn_off(self):
+        &#34;&#34;&#34;Method to turn off the robot
+        &#34;&#34;&#34;
+        self.robot.stop_simulation()
+
+    ########################################################################
+    ## LOCOMOTION
+    ########################################################################
+
+    def start_locomotion(self):
+        &#34;&#34;&#34;Method to start the robot locomotion 
+        &#34;&#34;&#34;
+        #starting the locomotion thread if it is not running
+        if self.locomotion_status == False: 
+            try:
+                self.locomotion_stop = False
+                locomotion_thread = thread.Thread(target=self.locomotion)
+            except:
+                print(time.strftime(&#34;%H:%M:%S&#34;),&#34;Error: unable to start locomotion thread&#34;)
+                sys.exit(1)
+
+            locomotion_thread.start()
+        else:
+            print(time.strftime(&#34;%H:%M:%S&#34;),&#34;The locomotion is already running&#34;)
+
+    def stop_locomotion(self):
+        &#34;&#34;&#34;Method to stop the locomotion
+        &#34;&#34;&#34;
+        print(time.strftime(&#34;%H:%M:%S&#34;),&#34;Stopping the locomotion thread&#34;)
+        self.locomotion_stop = True
+
+    def locomotion(self):
+        &#34;&#34;&#34;Method for locomotion control of the hexapod robot
+        &#34;&#34;&#34;
+        self.locomotion_status = True
+        
+        #cpg network instantiation
+        cpg = osc.OscilatorNetwork(6)
+        cpg.change_gait(osc.TRIPOD_GAIT_WEIGHTS)
+
+        coxa_angles= [0, 0, 0, 0, 0, 0]
+        cycle_length = [0, 0, 0, 0, 0, 0]
+       
+        last_timestamp = 0
+        #main locomotion control loop
+        while not self.locomotion_stop:
+            # steering - acquire left and right steering speeds
+            self.locomotion_lock.acquire()
+            left = np.min([1, np.max([-1, self.v_left])])
+            right = np.min([1, np.max([-1, self.v_right])])
+            self.locomotion_lock.release()
+
+            coxa_dir = [left, left, left, right, right, right]      #set directions for individual legs
+
+            #next step of CPG
+            cycle = cpg.oscilate_all_CPGs()
+            #read the state of the network
+            data = cpg.get_last_values()
+
+            #reset coxa angles if new cycle is detected
+            for i in range(0, 6):
+                cycle_length[i] += 1
+                if cycle[i] == True:
+                    coxa_angles[i]= -((cycle_length[i]-2)/2)*COXA_MAX
+                    cycle_length[i] = 0
+
+            angles = np.zeros(18)
+            #calculate individual joint angles for each of six legs
+            for i in range(0, 6):
+                femur_val = FEMUR_MAX*data[i] #calculation of femur angle
+                if femur_val &lt; 0:
+                    coxa_angles[i] -= coxa_dir[i]*COXA_MAX  #calculation of coxa angle -&gt; stride phase
+                    femur_val *= 0.025
+                else:
+                    coxa_angles[i] += coxa_dir[i]*COXA_MAX  #calculation of coxa angle -&gt; stance phase
+                
+                coxa_val = coxa_angles[i]
+                tibia_val = -TIBIA_MAX*data[i]       #calculation of tibia angle
+                    
+                #set position of each servo
+                angles[COXA_SERVOS[i] - 1] = SIGN_SERVOS[i]*coxa_val*self.stride_length + COXA_OFFSETS[i]
+                angles[FEMUR_SERVOS[i] - 1] = SIGN_SERVOS[i]*femur_val*self.stride_height + FEMUR_OFFSETS[i]
+                angles[TIBIA_SERVOS[i] - 1] = SIGN_SERVOS[i]*tibia_val*self.stride_height + TIBIA_OFFSETS[i]
+                    
+            #set all servos simultaneously
+            self.robot.set_all_servo_position(angles)
+
+            # GET DATA FROM SIMULATOR
+            self.odometry_ = self.robot.get_robot_odometry()
+            self.collision_ = self.robot.get_robot_collision()
+            self.laser_scan_ = self.robot.get_laser_scan()
+
+            time.sleep(TIME_FRAME/100.0)
+            
+        self.locomotion_status = False    
+    
+    def move(self, cmd):
+        &#34;&#34;&#34;Function to set diferential steering command
+        Args:
+            cmd: Twist velocity command
+        &#34;&#34;&#34;
+        if cmd == None:
+            left = 0
+            right = 0
+            self.navigation_goal = None
+        else:
+            #translate the velocity command into the differential steering command
+            linear_x = np.min([np.max([cmd.linear.x,-1]),1])
+            linear_y = np.min([np.max([cmd.linear.y,-1]),1])
+            angular_z = np.min([np.max([cmd.angular.z,-1]),1])
+            
+            right = (linear_x + angular_z)/2
+            left = linear_x - right
+
+        self.locomotion_lock.acquire()
+        self.v_left = SPEEDUP*left
+        self.v_right = SPEEDUP*right
+        self.locomotion_lock.release()
+
+    ########################################################################
+    ## NAVIGATION
+    ########################################################################
+
+    def start_navigation(self):
+        &#34;&#34;&#34;Method to start the navigation thread, that will guide the robot towards the goal set using the goto function
+        &#34;&#34;&#34;
+        #starting the navigation thread if it is not running
+        if self.navigation_status == False: 
+            print(time.strftime(&#34;%H:%M:%S&#34;),&#34;Starting navigation thread&#34;)
+            try:
+                self.navigation_stop = False
+                navigation_thread = thread.Thread(target=self.navigation)
+            except:
+                print(time.strftime(&#34;%H:%M:%S&#34;),&#34;Error: unable to start navigation thread&#34;)
+                sys.exit(1)
+
+            navigation_thread.start()
+        else:
+            print(time.strftime(&#34;%H:%M:%S&#34;),&#34;The navigation is already running&#34;)
+        
+    def stop_navigation(self):
+        &#34;&#34;&#34;
+        Stop the navigation thread
+        &#34;&#34;&#34;
+        print(time.strftime(&#34;%H:%M:%S&#34;),&#34;Stopping the navigation thread&#34;)
+        self.navigation_stop = True
+        self.locomotion_stop = True
+
+    def navigation(self):
+        &#34;&#34;&#34;Method for the navigation control towards a given goal
+        &#34;&#34;&#34;
+        self.navigation_status = True
+
+        #start the locomotion if it is not running
+        if self.locomotion_status == False:
+            print(time.strftime(&#34;%H:%M:%S&#34;),&#34;Starting locomotion thread&#34;)
+            self.start_locomotion()
+
+        #navigation loop
+        cmd = None
+        while not self.navigation_stop:
+            #stop the robot
+            if self.control_method == self.controller.stop:
+                cmd = self.control_method()
+        
+            #open-loop control
+            elif self.control_method == self.controller.goto:
+                cmd = self.control_method(
+                            goal = self.navigation_goal,
+                            odometry = self.odometry_,
+                            collision = self.collision_
+                      )
+            #reactive control
+            elif self.control_method == self.controller.goto_reactive:
+                cmd = self.control_method(
+                            goal = self.navigation_goal,
+                            odometry = self.odometry_,
+                            collision = self.collision_,
+                            laser_scan = self.laser_scan_
+                      )
+
+            #drive the robot using the selected command
+            self.move(cmd)
+            #pause for a bit 
+            time.sleep(0.1)
+
+        self.navigation_status = False
+            
+    def goto(self, goal):
+        &#34;&#34;&#34;open-loop navigation towards a selected navigational goal
+        Args:
+            goal: Pose of the robot goal 
+        &#34;&#34;&#34;
+        self.control_method = self.controller.goto
+        self.navigation_lock.acquire()
+        self.navigation_goal = goal
+        self.navigation_lock.release()
+
+    def stop(self):
+        &#34;&#34;&#34;open-loop navigation towards a selected navigational goal
+        Args:
+            goal: Pose of the robot goal 
+        &#34;&#34;&#34;
+        self.control_method = self.controller.stop
+        self.navigation_lock.acquire()
+        self.navigation_goal = None
+        self.navigation_lock.release()
+
+    def goto_reactive(self, goal):
+        &#34;&#34;&#34;navigation towards a selected navigational goal while avoiding obstacles
+        Args:
+            goal: Pose of the robot goal 
+        &#34;&#34;&#34;
+        self.control_method = self.controller.goto_reactive
+        self.navigation_lock.acquire()
+        self.navigation_goal = goal
+        self.navigation_lock.release()
+
+if __name__==&#34;__main__&#34;:
+    robot = HexapodController()
+    #drive the robot into the default position
+    robot.turn_on()
+    time.sleep(3)
+
+    #test the locomotion
+    robot.start_locomotion()
+    time.sleep(3)
+    
+    #velocity command
+    #go straight
+    cmd = Twist()
+    cmd.linear.x = 1.0
+
+    robot.move(cmd)
+    time.sleep(10)
+
+    #turn
+    cmd.linear.x = 0.0
+    cmd.angular.z = 1.0
+    robot.move(cmd)
+    time.sleep(10)
+    
+    robot.stop_locomotion()
+    robot.turn_off()</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="HexapodRobot.HexapodRobot"><code class="flex name class">
+<span>class <span class="ident">HexapodRobot</span></span>
+<span>(</span><span>robot_id)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Hexapod controller class constructor</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class HexapodRobot:
+    def __init__(self, robot_id):
+        &#34;&#34;&#34;Hexapod controller class constructor
+        &#34;&#34;&#34;
+        #robotHAL instance
+        self.robot = hexapodhal.HexapodHAL(robot_id, TIME_FRAME)
+        #controller instance
+        self.controller = cntrl.HexapodController()
+        self.control_method = self.controller.goto
+
+        #gait parametrization
+        self.v_left = 0
+        self.v_right = 0
+        
+        #stride_length
+        self.stride_length = 1
+        #stride_height
+        self.stride_height = 1
+
+        #locomotion and navigation variables
+        self.locomotion_stop = False
+        self.locomotion_lock = thread.Lock()     #mutex for access to turn commands
+        self.locomotion_status = False
+
+        self.navigation_stop = False
+        self.navigation_lock = thread.Lock()   #mutex for access to navigation coordinates
+        self.navigation_status = False 
+        self.navigation_goal = None
+
+        #simulator data
+        self.odometry_ = None
+        self.collision_ = None
+        self.laser_scan_ = None
+
+    ########################################################################
+
+    def turn_on(self):
+        &#34;&#34;&#34;Method to drive the robot into the default position
+        &#34;&#34;&#34;
+        #read out the current pose of the robot
+        configuration = self.robot.get_all_servo_position()
+
+        #interpolate to the default position
+        INTERPOLATION_TIME = 3000 #ms
+        interpolation_steps = int(INTERPOLATION_TIME/TIME_FRAME)
+
+        speed = np.zeros(18)
+        for i in range(0,18):
+            speed[i] = (SERVOS_BASE[i]-configuration[i])/interpolation_steps
+        
+        #execute the motion
+        for t in range(0, interpolation_steps):
+            self.robot.set_all_servo_position(configuration + t*speed)
+
+
+    def turn_off(self):
+        &#34;&#34;&#34;Method to turn off the robot
+        &#34;&#34;&#34;
+        self.robot.stop_simulation()
+
+    ########################################################################
+    ## LOCOMOTION
+    ########################################################################
+
+    def start_locomotion(self):
+        &#34;&#34;&#34;Method to start the robot locomotion 
+        &#34;&#34;&#34;
+        #starting the locomotion thread if it is not running
+        if self.locomotion_status == False: 
+            try:
+                self.locomotion_stop = False
+                locomotion_thread = thread.Thread(target=self.locomotion)
+            except:
+                print(time.strftime(&#34;%H:%M:%S&#34;),&#34;Error: unable to start locomotion thread&#34;)
+                sys.exit(1)
+
+            locomotion_thread.start()
+        else:
+            print(time.strftime(&#34;%H:%M:%S&#34;),&#34;The locomotion is already running&#34;)
+
+    def stop_locomotion(self):
+        &#34;&#34;&#34;Method to stop the locomotion
+        &#34;&#34;&#34;
+        print(time.strftime(&#34;%H:%M:%S&#34;),&#34;Stopping the locomotion thread&#34;)
+        self.locomotion_stop = True
+
+    def locomotion(self):
+        &#34;&#34;&#34;Method for locomotion control of the hexapod robot
+        &#34;&#34;&#34;
+        self.locomotion_status = True
+        
+        #cpg network instantiation
+        cpg = osc.OscilatorNetwork(6)
+        cpg.change_gait(osc.TRIPOD_GAIT_WEIGHTS)
+
+        coxa_angles= [0, 0, 0, 0, 0, 0]
+        cycle_length = [0, 0, 0, 0, 0, 0]
+       
+        last_timestamp = 0
+        #main locomotion control loop
+        while not self.locomotion_stop:
+            # steering - acquire left and right steering speeds
+            self.locomotion_lock.acquire()
+            left = np.min([1, np.max([-1, self.v_left])])
+            right = np.min([1, np.max([-1, self.v_right])])
+            self.locomotion_lock.release()
+
+            coxa_dir = [left, left, left, right, right, right]      #set directions for individual legs
+
+            #next step of CPG
+            cycle = cpg.oscilate_all_CPGs()
+            #read the state of the network
+            data = cpg.get_last_values()
+
+            #reset coxa angles if new cycle is detected
+            for i in range(0, 6):
+                cycle_length[i] += 1
+                if cycle[i] == True:
+                    coxa_angles[i]= -((cycle_length[i]-2)/2)*COXA_MAX
+                    cycle_length[i] = 0
+
+            angles = np.zeros(18)
+            #calculate individual joint angles for each of six legs
+            for i in range(0, 6):
+                femur_val = FEMUR_MAX*data[i] #calculation of femur angle
+                if femur_val &lt; 0:
+                    coxa_angles[i] -= coxa_dir[i]*COXA_MAX  #calculation of coxa angle -&gt; stride phase
+                    femur_val *= 0.025
+                else:
+                    coxa_angles[i] += coxa_dir[i]*COXA_MAX  #calculation of coxa angle -&gt; stance phase
+                
+                coxa_val = coxa_angles[i]
+                tibia_val = -TIBIA_MAX*data[i]       #calculation of tibia angle
+                    
+                #set position of each servo
+                angles[COXA_SERVOS[i] - 1] = SIGN_SERVOS[i]*coxa_val*self.stride_length + COXA_OFFSETS[i]
+                angles[FEMUR_SERVOS[i] - 1] = SIGN_SERVOS[i]*femur_val*self.stride_height + FEMUR_OFFSETS[i]
+                angles[TIBIA_SERVOS[i] - 1] = SIGN_SERVOS[i]*tibia_val*self.stride_height + TIBIA_OFFSETS[i]
+                    
+            #set all servos simultaneously
+            self.robot.set_all_servo_position(angles)
+
+            # GET DATA FROM SIMULATOR
+            self.odometry_ = self.robot.get_robot_odometry()
+            self.collision_ = self.robot.get_robot_collision()
+            self.laser_scan_ = self.robot.get_laser_scan()
+
+            time.sleep(TIME_FRAME/100.0)
+            
+        self.locomotion_status = False    
+    
+    def move(self, cmd):
+        &#34;&#34;&#34;Function to set diferential steering command
+        Args:
+            cmd: Twist velocity command
+        &#34;&#34;&#34;
+        if cmd == None:
+            left = 0
+            right = 0
+            self.navigation_goal = None
+        else:
+            #translate the velocity command into the differential steering command
+            linear_x = np.min([np.max([cmd.linear.x,-1]),1])
+            linear_y = np.min([np.max([cmd.linear.y,-1]),1])
+            angular_z = np.min([np.max([cmd.angular.z,-1]),1])
+            
+            right = (linear_x + angular_z)/2
+            left = linear_x - right
+
+        self.locomotion_lock.acquire()
+        self.v_left = SPEEDUP*left
+        self.v_right = SPEEDUP*right
+        self.locomotion_lock.release()
+
+    ########################################################################
+    ## NAVIGATION
+    ########################################################################
+
+    def start_navigation(self):
+        &#34;&#34;&#34;Method to start the navigation thread, that will guide the robot towards the goal set using the goto function
+        &#34;&#34;&#34;
+        #starting the navigation thread if it is not running
+        if self.navigation_status == False: 
+            print(time.strftime(&#34;%H:%M:%S&#34;),&#34;Starting navigation thread&#34;)
+            try:
+                self.navigation_stop = False
+                navigation_thread = thread.Thread(target=self.navigation)
+            except:
+                print(time.strftime(&#34;%H:%M:%S&#34;),&#34;Error: unable to start navigation thread&#34;)
+                sys.exit(1)
+
+            navigation_thread.start()
+        else:
+            print(time.strftime(&#34;%H:%M:%S&#34;),&#34;The navigation is already running&#34;)
+        
+    def stop_navigation(self):
+        &#34;&#34;&#34;
+        Stop the navigation thread
+        &#34;&#34;&#34;
+        print(time.strftime(&#34;%H:%M:%S&#34;),&#34;Stopping the navigation thread&#34;)
+        self.navigation_stop = True
+        self.locomotion_stop = True
+
+    def navigation(self):
+        &#34;&#34;&#34;Method for the navigation control towards a given goal
+        &#34;&#34;&#34;
+        self.navigation_status = True
+
+        #start the locomotion if it is not running
+        if self.locomotion_status == False:
+            print(time.strftime(&#34;%H:%M:%S&#34;),&#34;Starting locomotion thread&#34;)
+            self.start_locomotion()
+
+        #navigation loop
+        cmd = None
+        while not self.navigation_stop:
+            #stop the robot
+            if self.control_method == self.controller.stop:
+                cmd = self.control_method()
+        
+            #open-loop control
+            elif self.control_method == self.controller.goto:
+                cmd = self.control_method(
+                            goal = self.navigation_goal,
+                            odometry = self.odometry_,
+                            collision = self.collision_
+                      )
+            #reactive control
+            elif self.control_method == self.controller.goto_reactive:
+                cmd = self.control_method(
+                            goal = self.navigation_goal,
+                            odometry = self.odometry_,
+                            collision = self.collision_,
+                            laser_scan = self.laser_scan_
+                      )
+
+            #drive the robot using the selected command
+            self.move(cmd)
+            #pause for a bit 
+            time.sleep(0.1)
+
+        self.navigation_status = False
+            
+    def goto(self, goal):
+        &#34;&#34;&#34;open-loop navigation towards a selected navigational goal
+        Args:
+            goal: Pose of the robot goal 
+        &#34;&#34;&#34;
+        self.control_method = self.controller.goto
+        self.navigation_lock.acquire()
+        self.navigation_goal = goal
+        self.navigation_lock.release()
+
+    def stop(self):
+        &#34;&#34;&#34;open-loop navigation towards a selected navigational goal
+        Args:
+            goal: Pose of the robot goal 
+        &#34;&#34;&#34;
+        self.control_method = self.controller.stop
+        self.navigation_lock.acquire()
+        self.navigation_goal = None
+        self.navigation_lock.release()
+
+    def goto_reactive(self, goal):
+        &#34;&#34;&#34;navigation towards a selected navigational goal while avoiding obstacles
+        Args:
+            goal: Pose of the robot goal 
+        &#34;&#34;&#34;
+        self.control_method = self.controller.goto_reactive
+        self.navigation_lock.acquire()
+        self.navigation_goal = goal
+        self.navigation_lock.release()</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="HexapodRobot.HexapodRobot.goto"><code class="name flex">
+<span>def <span class="ident">goto</span></span>(<span>self, goal)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>open-loop navigation towards a selected navigational goal</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>goal</code></strong></dt>
+<dd>Pose of the robot goal</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def goto(self, goal):
+    &#34;&#34;&#34;open-loop navigation towards a selected navigational goal
+    Args:
+        goal: Pose of the robot goal 
+    &#34;&#34;&#34;
+    self.control_method = self.controller.goto
+    self.navigation_lock.acquire()
+    self.navigation_goal = goal
+    self.navigation_lock.release()</code></pre>
+</details>
+</dd>
+<dt id="HexapodRobot.HexapodRobot.goto_reactive"><code class="name flex">
+<span>def <span class="ident">goto_reactive</span></span>(<span>self, goal)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>navigation towards a selected navigational goal while avoiding obstacles</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>goal</code></strong></dt>
+<dd>Pose of the robot goal</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def goto_reactive(self, goal):
+    &#34;&#34;&#34;navigation towards a selected navigational goal while avoiding obstacles
+    Args:
+        goal: Pose of the robot goal 
+    &#34;&#34;&#34;
+    self.control_method = self.controller.goto_reactive
+    self.navigation_lock.acquire()
+    self.navigation_goal = goal
+    self.navigation_lock.release()</code></pre>
+</details>
+</dd>
+<dt id="HexapodRobot.HexapodRobot.locomotion"><code class="name flex">
+<span>def <span class="ident">locomotion</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Method for locomotion control of the hexapod robot</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def locomotion(self):
+    &#34;&#34;&#34;Method for locomotion control of the hexapod robot
+    &#34;&#34;&#34;
+    self.locomotion_status = True
+    
+    #cpg network instantiation
+    cpg = osc.OscilatorNetwork(6)
+    cpg.change_gait(osc.TRIPOD_GAIT_WEIGHTS)
+
+    coxa_angles= [0, 0, 0, 0, 0, 0]
+    cycle_length = [0, 0, 0, 0, 0, 0]
+   
+    last_timestamp = 0
+    #main locomotion control loop
+    while not self.locomotion_stop:
+        # steering - acquire left and right steering speeds
+        self.locomotion_lock.acquire()
+        left = np.min([1, np.max([-1, self.v_left])])
+        right = np.min([1, np.max([-1, self.v_right])])
+        self.locomotion_lock.release()
+
+        coxa_dir = [left, left, left, right, right, right]      #set directions for individual legs
+
+        #next step of CPG
+        cycle = cpg.oscilate_all_CPGs()
+        #read the state of the network
+        data = cpg.get_last_values()
+
+        #reset coxa angles if new cycle is detected
+        for i in range(0, 6):
+            cycle_length[i] += 1
+            if cycle[i] == True:
+                coxa_angles[i]= -((cycle_length[i]-2)/2)*COXA_MAX
+                cycle_length[i] = 0
+
+        angles = np.zeros(18)
+        #calculate individual joint angles for each of six legs
+        for i in range(0, 6):
+            femur_val = FEMUR_MAX*data[i] #calculation of femur angle
+            if femur_val &lt; 0:
+                coxa_angles[i] -= coxa_dir[i]*COXA_MAX  #calculation of coxa angle -&gt; stride phase
+                femur_val *= 0.025
+            else:
+                coxa_angles[i] += coxa_dir[i]*COXA_MAX  #calculation of coxa angle -&gt; stance phase
+            
+            coxa_val = coxa_angles[i]
+            tibia_val = -TIBIA_MAX*data[i]       #calculation of tibia angle
+                
+            #set position of each servo
+            angles[COXA_SERVOS[i] - 1] = SIGN_SERVOS[i]*coxa_val*self.stride_length + COXA_OFFSETS[i]
+            angles[FEMUR_SERVOS[i] - 1] = SIGN_SERVOS[i]*femur_val*self.stride_height + FEMUR_OFFSETS[i]
+            angles[TIBIA_SERVOS[i] - 1] = SIGN_SERVOS[i]*tibia_val*self.stride_height + TIBIA_OFFSETS[i]
+                
+        #set all servos simultaneously
+        self.robot.set_all_servo_position(angles)
+
+        # GET DATA FROM SIMULATOR
+        self.odometry_ = self.robot.get_robot_odometry()
+        self.collision_ = self.robot.get_robot_collision()
+        self.laser_scan_ = self.robot.get_laser_scan()
+
+        time.sleep(TIME_FRAME/100.0)
+        
+    self.locomotion_status = False    </code></pre>
+</details>
+</dd>
+<dt id="HexapodRobot.HexapodRobot.move"><code class="name flex">
+<span>def <span class="ident">move</span></span>(<span>self, cmd)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Function to set diferential steering command</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>cmd</code></strong></dt>
+<dd>Twist velocity command</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def move(self, cmd):
+    &#34;&#34;&#34;Function to set diferential steering command
+    Args:
+        cmd: Twist velocity command
+    &#34;&#34;&#34;
+    if cmd == None:
+        left = 0
+        right = 0
+        self.navigation_goal = None
+    else:
+        #translate the velocity command into the differential steering command
+        linear_x = np.min([np.max([cmd.linear.x,-1]),1])
+        linear_y = np.min([np.max([cmd.linear.y,-1]),1])
+        angular_z = np.min([np.max([cmd.angular.z,-1]),1])
+        
+        right = (linear_x + angular_z)/2
+        left = linear_x - right
+
+    self.locomotion_lock.acquire()
+    self.v_left = SPEEDUP*left
+    self.v_right = SPEEDUP*right
+    self.locomotion_lock.release()</code></pre>
+</details>
+</dd>
+<dt id="HexapodRobot.HexapodRobot.navigation"><code class="name flex">
+<span>def <span class="ident">navigation</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Method for the navigation control towards a given goal</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def navigation(self):
+    &#34;&#34;&#34;Method for the navigation control towards a given goal
+    &#34;&#34;&#34;
+    self.navigation_status = True
+
+    #start the locomotion if it is not running
+    if self.locomotion_status == False:
+        print(time.strftime(&#34;%H:%M:%S&#34;),&#34;Starting locomotion thread&#34;)
+        self.start_locomotion()
+
+    #navigation loop
+    cmd = None
+    while not self.navigation_stop:
+        #stop the robot
+        if self.control_method == self.controller.stop:
+            cmd = self.control_method()
+    
+        #open-loop control
+        elif self.control_method == self.controller.goto:
+            cmd = self.control_method(
+                        goal = self.navigation_goal,
+                        odometry = self.odometry_,
+                        collision = self.collision_
+                  )
+        #reactive control
+        elif self.control_method == self.controller.goto_reactive:
+            cmd = self.control_method(
+                        goal = self.navigation_goal,
+                        odometry = self.odometry_,
+                        collision = self.collision_,
+                        laser_scan = self.laser_scan_
+                  )
+
+        #drive the robot using the selected command
+        self.move(cmd)
+        #pause for a bit 
+        time.sleep(0.1)
+
+    self.navigation_status = False</code></pre>
+</details>
+</dd>
+<dt id="HexapodRobot.HexapodRobot.start_locomotion"><code class="name flex">
+<span>def <span class="ident">start_locomotion</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Method to start the robot locomotion</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def start_locomotion(self):
+    &#34;&#34;&#34;Method to start the robot locomotion 
+    &#34;&#34;&#34;
+    #starting the locomotion thread if it is not running
+    if self.locomotion_status == False: 
+        try:
+            self.locomotion_stop = False
+            locomotion_thread = thread.Thread(target=self.locomotion)
+        except:
+            print(time.strftime(&#34;%H:%M:%S&#34;),&#34;Error: unable to start locomotion thread&#34;)
+            sys.exit(1)
+
+        locomotion_thread.start()
+    else:
+        print(time.strftime(&#34;%H:%M:%S&#34;),&#34;The locomotion is already running&#34;)</code></pre>
+</details>
+</dd>
+<dt id="HexapodRobot.HexapodRobot.start_navigation"><code class="name flex">
+<span>def <span class="ident">start_navigation</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Method to start the navigation thread, that will guide the robot towards the goal set using the goto function</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def start_navigation(self):
+    &#34;&#34;&#34;Method to start the navigation thread, that will guide the robot towards the goal set using the goto function
+    &#34;&#34;&#34;
+    #starting the navigation thread if it is not running
+    if self.navigation_status == False: 
+        print(time.strftime(&#34;%H:%M:%S&#34;),&#34;Starting navigation thread&#34;)
+        try:
+            self.navigation_stop = False
+            navigation_thread = thread.Thread(target=self.navigation)
+        except:
+            print(time.strftime(&#34;%H:%M:%S&#34;),&#34;Error: unable to start navigation thread&#34;)
+            sys.exit(1)
+
+        navigation_thread.start()
+    else:
+        print(time.strftime(&#34;%H:%M:%S&#34;),&#34;The navigation is already running&#34;)</code></pre>
+</details>
+</dd>
+<dt id="HexapodRobot.HexapodRobot.stop"><code class="name flex">
+<span>def <span class="ident">stop</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>open-loop navigation towards a selected navigational goal</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>goal</code></strong></dt>
+<dd>Pose of the robot goal</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def stop(self):
+    &#34;&#34;&#34;open-loop navigation towards a selected navigational goal
+    Args:
+        goal: Pose of the robot goal 
+    &#34;&#34;&#34;
+    self.control_method = self.controller.stop
+    self.navigation_lock.acquire()
+    self.navigation_goal = None
+    self.navigation_lock.release()</code></pre>
+</details>
+</dd>
+<dt id="HexapodRobot.HexapodRobot.stop_locomotion"><code class="name flex">
+<span>def <span class="ident">stop_locomotion</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Method to stop the locomotion</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def stop_locomotion(self):
+    &#34;&#34;&#34;Method to stop the locomotion
+    &#34;&#34;&#34;
+    print(time.strftime(&#34;%H:%M:%S&#34;),&#34;Stopping the locomotion thread&#34;)
+    self.locomotion_stop = True</code></pre>
+</details>
+</dd>
+<dt id="HexapodRobot.HexapodRobot.stop_navigation"><code class="name flex">
+<span>def <span class="ident">stop_navigation</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Stop the navigation thread</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def stop_navigation(self):
+    &#34;&#34;&#34;
+    Stop the navigation thread
+    &#34;&#34;&#34;
+    print(time.strftime(&#34;%H:%M:%S&#34;),&#34;Stopping the navigation thread&#34;)
+    self.navigation_stop = True
+    self.locomotion_stop = True</code></pre>
+</details>
+</dd>
+<dt id="HexapodRobot.HexapodRobot.turn_off"><code class="name flex">
+<span>def <span class="ident">turn_off</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Method to turn off the robot</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def turn_off(self):
+    &#34;&#34;&#34;Method to turn off the robot
+    &#34;&#34;&#34;
+    self.robot.stop_simulation()</code></pre>
+</details>
+</dd>
+<dt id="HexapodRobot.HexapodRobot.turn_on"><code class="name flex">
+<span>def <span class="ident">turn_on</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Method to drive the robot into the default position</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def turn_on(self):
+    &#34;&#34;&#34;Method to drive the robot into the default position
+    &#34;&#34;&#34;
+    #read out the current pose of the robot
+    configuration = self.robot.get_all_servo_position()
+
+    #interpolate to the default position
+    INTERPOLATION_TIME = 3000 #ms
+    interpolation_steps = int(INTERPOLATION_TIME/TIME_FRAME)
+
+    speed = np.zeros(18)
+    for i in range(0,18):
+        speed[i] = (SERVOS_BASE[i]-configuration[i])/interpolation_steps
+    
+    #execute the motion
+    for t in range(0, interpolation_steps):
+        self.robot.set_all_servo_position(configuration + t*speed)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="HexapodRobot.HexapodRobot" href="#HexapodRobot.HexapodRobot">HexapodRobot</a></code></h4>
+<ul class="two-column">
+<li><code><a title="HexapodRobot.HexapodRobot.goto" href="#HexapodRobot.HexapodRobot.goto">goto</a></code></li>
+<li><code><a title="HexapodRobot.HexapodRobot.goto_reactive" href="#HexapodRobot.HexapodRobot.goto_reactive">goto_reactive</a></code></li>
+<li><code><a title="HexapodRobot.HexapodRobot.locomotion" href="#HexapodRobot.HexapodRobot.locomotion">locomotion</a></code></li>
+<li><code><a title="HexapodRobot.HexapodRobot.move" href="#HexapodRobot.HexapodRobot.move">move</a></code></li>
+<li><code><a title="HexapodRobot.HexapodRobot.navigation" href="#HexapodRobot.HexapodRobot.navigation">navigation</a></code></li>
+<li><code><a title="HexapodRobot.HexapodRobot.start_locomotion" href="#HexapodRobot.HexapodRobot.start_locomotion">start_locomotion</a></code></li>
+<li><code><a title="HexapodRobot.HexapodRobot.start_navigation" href="#HexapodRobot.HexapodRobot.start_navigation">start_navigation</a></code></li>
+<li><code><a title="HexapodRobot.HexapodRobot.stop" href="#HexapodRobot.HexapodRobot.stop">stop</a></code></li>
+<li><code><a title="HexapodRobot.HexapodRobot.stop_locomotion" href="#HexapodRobot.HexapodRobot.stop_locomotion">stop_locomotion</a></code></li>
+<li><code><a title="HexapodRobot.HexapodRobot.stop_navigation" href="#HexapodRobot.HexapodRobot.stop_navigation">stop_navigation</a></code></li>
+<li><code><a title="HexapodRobot.HexapodRobot.turn_off" href="#HexapodRobot.HexapodRobot.turn_off">turn_off</a></code></li>
+<li><code><a title="HexapodRobot.HexapodRobot.turn_on" href="#HexapodRobot.HexapodRobot.turn_on">turn_on</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>

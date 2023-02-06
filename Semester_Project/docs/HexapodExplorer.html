@@ -1,0 +1,2123 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>HexapodExplorer API documentation</title>
+<meta name="description" content="Project: Artificial Intelligence for Robotics
+Author: Lukas Malek
+Email: malek.luky@gmail.com
+Date: February 2023" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>HexapodExplorer</code></h1>
+</header>
+<section id="section-intro">
+<p>Project: Artificial Intelligence for Robotics
+Author: Lukas Malek
+Email: malek.luky@gmail.com
+Date: February 2023</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#34;&#34;&#34;
+Project: Artificial Intelligence for Robotics
+Author: Lukas Malek
+Email: malek.luky@gmail.com
+Date: February 2023
+&#34;&#34;&#34;
+
+# STANDARD LIBRARIES
+import math
+import numpy as np
+import copy
+from messages import *
+import matplotlib.pyplot as plt
+import scipy.ndimage as ndimg
+import heapq
+
+# CUSTOM IMPORT
+import sys
+import heapq
+import skimage.measure as skm
+from sklearn.cluster import KMeans
+#from lkh.invoke_LKH import solve_TSP
+np.set_printoptions(threshold=sys.maxsize)  # print full numpy array
+from hexapod_robot.HexapodRobotConst import *
+
+# PRIORITY QUEUE
+class PriorityQueue:
+    def __init__(self):
+        self.elements = []
+
+    def empty(self):
+        return len(self.elements) == 0
+
+    def put(self, item, priority):
+        heapq.heappush(self.elements, (priority, item))
+
+    def pop(self):
+        return heapq.heappop(self.elements)[1]
+
+    def top(self):
+        u = self.elements[0]
+        return u[1]
+
+    def topKey(self):
+        u = self.elements[0]
+        return u[0]
+
+    def contains(self, element):
+        ret = False
+        for item in self.elements:
+            if element == item[1]:
+                ret = True
+                break
+        return ret
+
+    def print_elements(self):
+        return self.elements
+
+    def remove(self, element):
+        i = 0
+        for item in self.elements:
+            if element == item[1]:
+                self.elements[i] = self.elements[-1]
+                self.elements.pop()
+                heapq.heapify(self.elements)
+                break
+            i += 1
+
+    def arg(self,value):
+        for item in self.elements:
+            for subitem in item[0]:
+                if value == subitem:
+                    return item[1]
+
+###################################################################
+# CLASS HEXAPOD EXPLORER
+###################################################################
+class HexapodExplorer:
+
+    def __init__(self):
+        pass
+
+    def print_path(self, path):
+        &#34;&#34;&#34;
+        Method to print the path point by point
+        &#34;&#34;&#34;
+        if path is not None:
+            if len(path.poses)==0:
+                print(&#34;Path is empty&#34;)
+            for i, pose in enumerate(path.poses):
+                print(&#34;Point&#34;,i,&#34;:&#34;,pose.position.x,pose.position.y)
+        else:
+            print(&#34;Path is None&#34;)
+
+    def update_free(self, P_mi):
+        &#34;&#34;&#34;
+        Method to calculate the Bayesian update of the free cell with the current occupancy probability value P_mi 
+
+        Args:
+            P_mi: float64 - current probability of the cell being occupied
+        Returns:
+            p_mi: float64 - updated probability of the cell being occupied
+        &#34;&#34;&#34;
+        s_z_occ = 0
+        s_z_free = 0.95  # to be sure that probability is never 0
+        p_z_mi_occ = (1+s_z_occ-s_z_free)/2
+        p_z_mi_free = 1-p_z_mi_occ
+        p_mi = (p_z_mi_occ*P_mi)/((p_z_mi_occ*P_mi)+(p_z_mi_free*(1-P_mi)))
+        return max(0.05, p_mi)  # never let p_mi get to 0
+
+    def update_occupied(self, P_mi):
+        &#34;&#34;&#34;
+        Method to calculate the Bayesian update of the occupied cell with the current occupancy probability value P_mi
+
+        Args:
+            P_mi: float64 - current probability of the cell being occupied
+        Returns:
+            p_mi: float64 - updated probability of the cell being occupied
+        &#34;&#34;&#34;
+        s_z_occ = 0.95  # to be sure that probability is never 1
+        s_z_free = 0
+        p_z_mi_occ = (1+s_z_occ-s_z_free)/2
+        p_z_mi_free = 1-p_z_mi_occ
+        p_mi = (p_z_mi_occ*P_mi)/((p_z_mi_occ*P_mi)+(p_z_mi_free*(1-P_mi)))
+        return min(p_mi, 0.95)  # never let p_mi get to 1
+
+    def distance(self, start, end):
+        &#39;&#39;&#39;
+        Return the distance from the point A to the point B
+        &#39;&#39;&#39;
+        (x1, y1) = start
+        (x2, y2) = end
+        return math.sqrt(abs(x1 - x2)**2 + abs(y1 - y2)**2)
+
+    def format_path(self, path, came_from, grid_map, start, goal):
+        &#39;&#39;&#39;
+        Return the path as requested in assignment as a list
+        of positions[(x1, y1), (x2, y2), ...] At the moment the
+        path is stored as the dicionary with at the format {(pos1):(pos2),..}
+        and if you want to find the final path, you have to go backward,
+        in other words start at the goal and than ask, &#34;how I get there&#34; till
+        we will not reach the starting point
+        &#39;&#39;&#39;
+        path.poses.insert(0, self.map_to_world(
+            goal, grid_map))  # Add goal!!
+        coordinates = came_from.get(goal)
+        while coordinates != start:
+            pose = self.map_to_world(coordinates, grid_map)
+            coordinates = came_from.get(coordinates)
+            path.poses.insert(0, pose)
+        pose = self.map_to_world(coordinates, grid_map)
+        path.poses.insert(0, pose)  # Add start!!
+        return path
+
+    def neighbors_finder(self, current_pos, grid_map):
+        &#39;&#39;&#39;
+        Return the list of the neighbors of the current position
+        return neighbors = [[(x1, y1), [(x2, y2), cost], ... ]
+        &#39;&#39;&#39;
+        neighbors = []
+        (x, y) = current_pos
+        if x==0 or y==0 or x==grid_map.width-1 or y==grid_map.width-1 or x==grid_map.height-1 or y==grid_map.height-1:
+            return []
+        for i in range(-1, 2):
+            for j in range(-1, 2):
+                if (i,j) != (0, 0) and grid_map.data[y + j, x + i] == 0:
+                    neighbors.append((int(x + i), int(y + j))) #not on the edge
+        return neighbors
+    
+    def world_to_map(self, point, grid_map):
+        &#34;&#34;&#34;
+        Return the coordinates of the point in the map from the pose
+        &#34;&#34;&#34;
+        if type(point) == Vector3:
+            point = (point.x, point.y)
+        else:
+            point = (point[0], point[1]) #possible floating point error
+        map_origin = np.array([grid_map.origin.position.x, grid_map.origin.position.y])
+        res = (point - map_origin) / grid_map.resolution
+        return tuple(np.round(res).astype(int))   
+
+    def map_to_world(self, coordinates, grid_map):
+        &#39;&#39;&#39;
+        Return the pose from the map coordinates
+        &#39;&#39;&#39;
+        pose = Pose()
+        pose.position.x = np.round(coordinates[0] * grid_map.resolution+grid_map.origin.position.x,decimals=3)
+        pose.position.y = np.round(coordinates[1] * grid_map.resolution+grid_map.origin.position.y,decimals=3)
+        return pose
+
+    def a_star(self, grid_map, start_pose, goal_pose):
+        &#39;&#39;&#39;
+        Generates the path. The method returns a list of coordinates for the
+        path. It must start with the starting position and end at the goal
+        position [(x1, y1), (x2, y2), … ]. If there is no path, it should
+        return None.
+        &#39;&#39;&#39;
+        path = Path()
+        frontier = list()
+        start = self.world_to_map(start_pose.position, grid_map)
+        goal = self.world_to_map(goal_pose.position, grid_map)
+        heapq.heappush(frontier, (0, start))
+        cost_so_far = dict() # {(x1,y1):cost1, (x2,y2):cost2, ..}
+        cost_so_far[start] = 0
+        came_from = dict()   # {(0, 0):None, (1, 2):(0, 1), ...}
+        came_from[start] = None
+        while frontier: # while not empty:
+            current_pos = heapq.heappop(frontier)[1]
+            if current_pos == goal:
+                break
+            neighbors = self.neighbors_finder(current_pos, grid_map)
+
+            for next_pos in neighbors:
+                new_cost = cost_so_far.get(
+                    current_pos) + self.distance(next_pos, current_pos)
+                if next_pos not in cost_so_far or new_cost &lt; cost_so_far.get(next_pos):
+                    cost_so_far[next_pos] = new_cost
+                    priority = new_cost + self.distance(next_pos, goal)
+                    heapq.heappush(frontier, (priority, next_pos))
+                    came_from[next_pos] = current_pos
+        if current_pos == goal and start is not None and goal is not None:
+            ret = self.format_path(path, came_from, grid_map, start, goal)
+            return ret
+        else:
+            return None
+
+    def closest_frontier(self, start, frontiers, gridmap_processed):
+        &#39;&#39;&#39;
+        Return the closest frontier from the list of frontiers
+        &#39;&#39;&#39;
+        shortest_path = np.inf
+        ret_frontier = None
+        for frontier in frontiers:
+            path = self.a_star(gridmap_processed, start, frontier)
+            if path is not None and len(path.poses) &lt; shortest_path:
+                shortest_path = len(path.poses)
+                ret_frontier = frontier
+        return ret_frontier
+
+    def remove_frontiers(self, gridmap, frontiers):
+        if frontiers is not None:
+            for frontier in frontiers: #remove frontiers which are in obstacle
+                if type(frontier) != Pose:
+                    frontier = frontier[0] #  where it contains also the information gain
+                (x,y) = self.world_to_map(frontier.position,gridmap)
+                if gridmap.data[y,x] == 1:
+                    if type(frontiers[0]) == Pose:
+                        frontiers = list(filter(lambda x: x != frontier, frontiers))
+                    else:
+                        frontiers = [item for item in frontiers if item[0] != frontier]
+                        
+        return frontiers
+
+    def bresenham_line(self, start, goal):
+        &#34;&#34;&#34;
+        Bresenham&#39;s line algorithm
+
+        Args:
+            start: (float64, float64) - start coordinate
+            goal: (float64, float64) - goal coordinate
+        Returns:
+            (float64, float64) - interlying points between the start and goal coordinate
+        &#34;&#34;&#34;
+        (x0, y0) = start
+        (x1, y1) = goal
+        line = []
+        dx = abs(x1 - x0)
+        dy = abs(y1 - y0)
+        x, y = x0, y0
+        sx = -1 if x0 &gt; x1 else 1
+        sy = -1 if y0 &gt; y1 else 1
+        if dx &gt; dy:
+            err = dx / 2.0
+            while x != x1:
+                line.append((x,y))
+                err -= dy
+                if err &lt; 0:
+                    y += sy
+                    err += dx
+                x += sx
+        else:
+            err = dy / 2.0
+            while y != y1:
+                line.append((x,y))
+                err -= dx
+                if err &lt; 0:
+                    x += sx
+                    err += dy
+                y += sy
+        x = goal[0]
+        y = goal[1]
+        return line
+
+    def plot_graph(self, grid_map):
+        &#34;&#34;&#34;
+        Plot the graphs in case error occurs and we want to see the map
+        &#34;&#34;&#34;
+        data = grid_map.data.reshape(grid_map.height, grid_map.width)
+        _, ax = plt.subplots()
+        plt.imshow(data, cmap=&#39;viridis&#39;)
+        ax = plt.gca()
+        ax.set_ylim(ax.get_ylim()[::-1])
+        plt.colorbar()
+        plt.xlabel(&#39;x[m]&#39;)
+        plt.ylabel(&#39;y[m]&#39;)
+        plt.title(&#34;pixel_plot&#34;)
+        plt.show()
+
+    def fuse_laser_scan(self, grid_map, laser_scan, odometry):
+        &#34;&#34;&#34;
+        Method to fuse the laser scan data sampled by the robot with a given 
+        odometry into the probabilistic occupancy grid map
+
+        Args:
+            grid_map_update: OccupancyGrid - gridmap to fuse te laser scan to
+            laser_scan: LaserScan - laser scan perceived by the robot
+            odometry: Odometry - perceived odometry of the robot
+        Returns:
+            grid_map_update: OccupancyGrid - gridmap updated with the laser scan data
+        &#34;&#34;&#34;
+        grid_map_update = copy.deepcopy(grid_map)
+        if laser_scan is not None and odometry is not None:
+            laserscan_points = laser_scan.distances
+            alpha_min = laser_scan.angle_min
+            odometry_R = odometry.pose.orientation.to_R()
+            odometry_x = odometry.pose.position.x
+            odometry_y = odometry.pose.position.y
+            free_points = list()
+            occupied_points = list()
+            for laserscan_sector, laserscan_sector_value in enumerate(laserscan_points):
+                &#39;&#39;&#39;
+                STEP 1: Project the laser scan points to x,y plane with respect to the robot heading
+                &#39;&#39;&#39;
+                if laserscan_sector_value &lt; laser_scan.range_min or laserscan_sector_value &gt; laser_scan.range_max:
+                    continue # ignore invalid laserscan values
+                theta_i = alpha_min + laserscan_sector*laser_scan.angle_increment
+                point_x = laserscan_sector_value*np.cos(theta_i)
+                point_y = laserscan_sector_value*np.sin(theta_i)
+
+                &#39;&#39;&#39;
+                STEP 2: Compensate for the robot odometry
+                &#39;&#39;&#39;
+                point_normalized = np.transpose(
+                    np.array([point_x, point_y, 1]))
+                point_x_global, point_y_global, _ = odometry_R @ point_normalized + \
+                    np.array([odometry_x, odometry_y, 1])
+
+                &#39;&#39;&#39;
+                STEP 3: Transfer the points from the world coordinates to the map coordinates
+                &#39;&#39;&#39;
+                point_x_map, point_y_map = self.world_to_map(
+                    [point_x_global, point_y_global], grid_map_update)
+
+                &#39;&#39;&#39;
+                STEP 4: Raytrace individual scanned points
+                &#39;&#39;&#39;
+                odometry_x_map, odometry_y_map = self.world_to_map(
+                    [odometry_x, odometry_y], grid_map_update)
+                pts = self.bresenham_line(
+                    (odometry_x_map, odometry_y_map), (point_x_map, point_y_map))
+                free_points.extend(pts)
+                occupied_points.append((point_x_map, point_y_map))
+
+            &#39;&#39;&#39;
+            STEP 5: Dynamically resize the map
+            &#39;&#39;&#39;
+            data = grid_map_update.data.reshape(grid_map_update.height, grid_map_update.width)
+            for (x, y) in [(odometry_x_map,odometry_y_map)] + occupied_points: # for the first loop we need to resize the map based on robot
+                if x &lt; 0 or y &lt; 0 or data is None or x &gt;= grid_map.width or y &gt;= grid_map.height:
+                    x_shift = min(0, x)     # negative coordinate -&gt; we need to shift the origin
+                    y_shift = min(0, y)
+                    new_height = max(grid_map.height if data is not None else 0, y+1) - y_shift
+                    new_width = max(grid_map.width if data is not None else 0, x+1) - x_shift
+                    new_origin = np.array([grid_map.origin.position.x, grid_map.origin.position.y]) + np.array([x_shift, y_shift]) * grid_map.resolution
+                    new_data = 0.5 * np.ones((new_height, new_width))
+                    if data is not None:
+                        new_data[-y_shift:-y_shift+grid_map.height, -x_shift:-x_shift+grid_map.width] = data
+                    grid_map_update.width = new_width
+                    grid_map_update.height = new_height
+                    grid_map_update.origin = Pose(Vector3(new_origin[0], new_origin[1], 0.0), Quaternion(1, 0, 0, 0))
+                    grid_map_update.data = new_data.flatten()
+                    return self.fuse_laser_scan(grid_map_update, laser_scan, odometry)
+
+            &#39;&#39;&#39;
+            STEP 6: Update the occupancy grid using the Bayesian update and the simplified laser scan sensor model
+            &#39;&#39;&#39;
+            for (x, y) in occupied_points:
+                data[y, x] = self.update_occupied(data[y, x])
+            for (x, y) in free_points:
+                data[y, x] = self.update_free(data[y, x])
+            grid_map_update.data = data.flatten() 
+        return grid_map_update
+
+    def grow_obstacles(self, grid_map, robot_size):
+        &#34;&#34;&#34; Method to grow the obstacles to take into account the robot embodiment
+        Args:
+            grid_map: OccupancyGrid - gridmap for obstacle growing
+            robot_size: float - size of the robot
+        Returns:
+            grid_map_grow: OccupancyGrid - gridmap with considered robot body embodiment
+        Notes:
+            use obstacle growing only on obstacles, not uknown areas
+            filter all unknown areas moved to the end of the function
+        &#34;&#34;&#34;
+
+        grid_map_grow = copy.deepcopy(grid_map)
+        grid_map_grow.data[grid_map.data &gt; 0.5] = 1  # obstacles
+        grid_map_grow.data[grid_map.data &lt;= 0.5] = 0  # free area
+        kernel_size = round(robot_size/grid_map_grow.resolution)  # must be even
+        r = round(kernel_size) # filter cells close to obstacles
+        kernel = np.fromfunction(lambda x, y: ((x-r)**2 + (y-r)**2 &lt; r**2)*1, (2*r+1, 2*r+1), dtype=int).astype(np.uint8)
+        grid_map_grow.data = ndimg.convolve(grid_map_grow.data, kernel)
+        grid_map_grow.data[grid_map_grow.data &gt; 1] = 1
+        grid_map_grow.data[grid_map.data == 0.5] = 1  # unknown area
+        return grid_map_grow
+
+    def simplify_path(self, grid_map, path):
+        &#34;&#34;&#34;
+        Method to simplify the found path on the grid
+        Founds the connected segments and remove unnecessary points
+
+        Args:
+            grid_map: OccupancyGrid - gridmap for obstacle growing
+            path: Path - path to be simplified
+        Returns:
+            path_simple: Path - simplified path
+        &#34;&#34;&#34;
+        if grid_map == None or path == None or len(path.poses)==0:
+            return None
+        path_simple = Path()
+        path_simple.poses.append(path.poses[0]) # add the start pose
+        i = 1
+        while path_simple.poses[-1] != path.poses[-1]: #while goal not reached
+            last_pose = path_simple.poses[-1] #last pose without collision
+            for pose in path.poses[i::]:   
+                end = path_simple.poses[-1]            
+                bres_line = self.bresenham_line(self.world_to_map(end.position,grid_map),
+                                                self.world_to_map(pose.position,grid_map))    
+                
+                collision = False
+                for (x, y) in bres_line: #check for collision
+                    if grid_map.data[y,x] != 0: # this is correct!
+                        collision = True
+                if collision == False:
+                    last_pose = pose #update last_pose
+                    i += 1
+                    if pose == path.poses[-1]:  # goal is reached
+                        path_simple.poses.append(last_pose)
+                        break
+                else:
+                    path_simple.poses.append(last_pose)
+                    break
+            if len(bres_line)==1 and pose != path.poses[-1]:
+                return None # looping scenario, frontier too close and inside obstacle???
+        path_simple.poses.pop(0) # remove the start pose
+        return path_simple
+
+    def find_free_edge_frontiers(self, grid_map):
+        &#34;&#34;&#34;
+        Method to find the free-edge frontiers (edge clusters between the free and unknown areas)
+
+        Args:
+            grid_map: OccupancyGrid - gridmap of the environment
+        Returns:
+            pose_list: Pose[] - list of selected frontiers
+        &#34;&#34;&#34;
+
+        data = copy.deepcopy(grid_map.data)
+        data[data == 0.5] = 10
+        mask = np.array([[1, 1, 1], [1, 0, 1], [1, 1, 1]])
+        data_c = ndimg.convolve(data, mask, mode=&#39;constant&#39;, cval=0.0)
+
+        # Format result
+        for (y, val1) in enumerate(data_c):
+            for (x, val2) in enumerate(val1):
+                if grid_map.data.reshape(grid_map.height, grid_map.width)[(y, x)] &lt; 0.5 and val2 &lt; 50 and val2 &gt;= 10:
+                    data[(y, x)] = 1
+                else:
+                    data[(y, x)] = 0
+        labeled_image, num_labels = skm.label(
+            data, connectivity=2, return_num=True)
+
+        # Final Labeling
+        cluster = {}
+        for label in range(1, num_labels+1):
+            cluster[label] = []
+        for x in range(0, labeled_image.shape[1]):
+            for y in range(0, labeled_image.shape[0]):
+
+                label = labeled_image[y, x]
+                if label != 0:
+                    cluster[label].append((x, y))
+        pose_list = []
+        for label, items in cluster.items():
+            &#34;&#34;&#34;
+            f1 Implementation
+            &#34;&#34;&#34;
+            # centroid = (0, 0)
+            # for item in items:
+            #     centroid = (centroid[0]+item[0], centroid[1]+item[1])
+            # centroid = (centroid[0]/len(items), centroid[1]/len(items))
+            # pose = self.map_to_world(
+            #     [centroid[0], centroid[1]], grid_map)
+            # pose_list.append(pose)
+
+            &#34;&#34;&#34;
+            f2 Implementation
+            &#34;&#34;&#34;
+            f = len(items)
+            D = LASER_MAX_RANGE / grid_map.resolution
+            n_r = np.floor(f/D + 0.5) +1
+            kmeans = KMeans(n_clusters=int(n_r), max_iter=70, tol=1e-2, n_init=1).fit(items)
+            for centroid in kmeans.cluster_centers_:
+                pose_list.append(self.map_to_world(centroid, grid_map))
+        return pose_list
+
+    def find_inf_frontiers(self, grid_map):
+        &#34;&#34;&#34;
+        f3 Implementation
+        Method to find the information frontiers (frontiers with the highest information gain)
+        Args:
+            grid_map: OccupancyGrid - gridmap of the environment
+        Returns:
+            pose_list: Pose[] - list of selected frontiers
+        &#34;&#34;&#34;
+
+        # Calculate entropy of each cell in the grid
+        H = grid_map.data.copy()
+        for row,row_val in enumerate(H):
+            for col,col_val in enumerate(row_val): 
+                p = H[row][col]
+                if p == 0 or p == 1:
+                    H[row][col] = 0
+                else:
+                    H[row][col] = -p * np.log(p) - (1-p) * np.log(1-p)
+
+        # Find free frontiers
+        frontiers = self.find_free_edge_frontiers(grid_map)
+
+        # Calculate information gain of each frontier
+        frontiers_weighted = []
+        beams = 8
+        for frontier in frontiers:
+            frontier_cell = self.world_to_map(frontier.position, grid_map)
+
+            # Calculate information gain along 8 beams from the frontier
+            I_action = 0.0
+            beam = Pose()
+            for i in range(beams):
+                beam.position.y = frontier.position.y + math.sin(i * math.pi/beams) * LASER_MAX_RANGE
+                beam.position.x = frontier.position.x + math.cos(i * math.pi/beams) * LASER_MAX_RANGE
+                beam_end_coord = self.world_to_map(beam.position, grid_map)
+                beam_line = self.bresenham_line(frontier_cell, beam_end_coord)
+
+                # Accumulate information gain along the beam
+                for x, y in beam_line:
+                    if (x &lt; 0 or x &gt;= grid_map.width or y &lt; 0 or y &gt;= grid_map.height) or grid_map.data[y, x] == 1:
+                        break    # beam is out of bounds or hits an obstacle
+                    I_action += H[y, x]
+            frontiers_weighted.append((frontier, I_action))
+
+        return frontiers_weighted</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="HexapodExplorer.HexapodExplorer"><code class="flex name class">
+<span>class <span class="ident">HexapodExplorer</span></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class HexapodExplorer:
+
+    def __init__(self):
+        pass
+
+    def print_path(self, path):
+        &#34;&#34;&#34;
+        Method to print the path point by point
+        &#34;&#34;&#34;
+        if path is not None:
+            if len(path.poses)==0:
+                print(&#34;Path is empty&#34;)
+            for i, pose in enumerate(path.poses):
+                print(&#34;Point&#34;,i,&#34;:&#34;,pose.position.x,pose.position.y)
+        else:
+            print(&#34;Path is None&#34;)
+
+    def update_free(self, P_mi):
+        &#34;&#34;&#34;
+        Method to calculate the Bayesian update of the free cell with the current occupancy probability value P_mi 
+
+        Args:
+            P_mi: float64 - current probability of the cell being occupied
+        Returns:
+            p_mi: float64 - updated probability of the cell being occupied
+        &#34;&#34;&#34;
+        s_z_occ = 0
+        s_z_free = 0.95  # to be sure that probability is never 0
+        p_z_mi_occ = (1+s_z_occ-s_z_free)/2
+        p_z_mi_free = 1-p_z_mi_occ
+        p_mi = (p_z_mi_occ*P_mi)/((p_z_mi_occ*P_mi)+(p_z_mi_free*(1-P_mi)))
+        return max(0.05, p_mi)  # never let p_mi get to 0
+
+    def update_occupied(self, P_mi):
+        &#34;&#34;&#34;
+        Method to calculate the Bayesian update of the occupied cell with the current occupancy probability value P_mi
+
+        Args:
+            P_mi: float64 - current probability of the cell being occupied
+        Returns:
+            p_mi: float64 - updated probability of the cell being occupied
+        &#34;&#34;&#34;
+        s_z_occ = 0.95  # to be sure that probability is never 1
+        s_z_free = 0
+        p_z_mi_occ = (1+s_z_occ-s_z_free)/2
+        p_z_mi_free = 1-p_z_mi_occ
+        p_mi = (p_z_mi_occ*P_mi)/((p_z_mi_occ*P_mi)+(p_z_mi_free*(1-P_mi)))
+        return min(p_mi, 0.95)  # never let p_mi get to 1
+
+    def distance(self, start, end):
+        &#39;&#39;&#39;
+        Return the distance from the point A to the point B
+        &#39;&#39;&#39;
+        (x1, y1) = start
+        (x2, y2) = end
+        return math.sqrt(abs(x1 - x2)**2 + abs(y1 - y2)**2)
+
+    def format_path(self, path, came_from, grid_map, start, goal):
+        &#39;&#39;&#39;
+        Return the path as requested in assignment as a list
+        of positions[(x1, y1), (x2, y2), ...] At the moment the
+        path is stored as the dicionary with at the format {(pos1):(pos2),..}
+        and if you want to find the final path, you have to go backward,
+        in other words start at the goal and than ask, &#34;how I get there&#34; till
+        we will not reach the starting point
+        &#39;&#39;&#39;
+        path.poses.insert(0, self.map_to_world(
+            goal, grid_map))  # Add goal!!
+        coordinates = came_from.get(goal)
+        while coordinates != start:
+            pose = self.map_to_world(coordinates, grid_map)
+            coordinates = came_from.get(coordinates)
+            path.poses.insert(0, pose)
+        pose = self.map_to_world(coordinates, grid_map)
+        path.poses.insert(0, pose)  # Add start!!
+        return path
+
+    def neighbors_finder(self, current_pos, grid_map):
+        &#39;&#39;&#39;
+        Return the list of the neighbors of the current position
+        return neighbors = [[(x1, y1), [(x2, y2), cost], ... ]
+        &#39;&#39;&#39;
+        neighbors = []
+        (x, y) = current_pos
+        if x==0 or y==0 or x==grid_map.width-1 or y==grid_map.width-1 or x==grid_map.height-1 or y==grid_map.height-1:
+            return []
+        for i in range(-1, 2):
+            for j in range(-1, 2):
+                if (i,j) != (0, 0) and grid_map.data[y + j, x + i] == 0:
+                    neighbors.append((int(x + i), int(y + j))) #not on the edge
+        return neighbors
+    
+    def world_to_map(self, point, grid_map):
+        &#34;&#34;&#34;
+        Return the coordinates of the point in the map from the pose
+        &#34;&#34;&#34;
+        if type(point) == Vector3:
+            point = (point.x, point.y)
+        else:
+            point = (point[0], point[1]) #possible floating point error
+        map_origin = np.array([grid_map.origin.position.x, grid_map.origin.position.y])
+        res = (point - map_origin) / grid_map.resolution
+        return tuple(np.round(res).astype(int))   
+
+    def map_to_world(self, coordinates, grid_map):
+        &#39;&#39;&#39;
+        Return the pose from the map coordinates
+        &#39;&#39;&#39;
+        pose = Pose()
+        pose.position.x = np.round(coordinates[0] * grid_map.resolution+grid_map.origin.position.x,decimals=3)
+        pose.position.y = np.round(coordinates[1] * grid_map.resolution+grid_map.origin.position.y,decimals=3)
+        return pose
+
+    def a_star(self, grid_map, start_pose, goal_pose):
+        &#39;&#39;&#39;
+        Generates the path. The method returns a list of coordinates for the
+        path. It must start with the starting position and end at the goal
+        position [(x1, y1), (x2, y2), … ]. If there is no path, it should
+        return None.
+        &#39;&#39;&#39;
+        path = Path()
+        frontier = list()
+        start = self.world_to_map(start_pose.position, grid_map)
+        goal = self.world_to_map(goal_pose.position, grid_map)
+        heapq.heappush(frontier, (0, start))
+        cost_so_far = dict() # {(x1,y1):cost1, (x2,y2):cost2, ..}
+        cost_so_far[start] = 0
+        came_from = dict()   # {(0, 0):None, (1, 2):(0, 1), ...}
+        came_from[start] = None
+        while frontier: # while not empty:
+            current_pos = heapq.heappop(frontier)[1]
+            if current_pos == goal:
+                break
+            neighbors = self.neighbors_finder(current_pos, grid_map)
+
+            for next_pos in neighbors:
+                new_cost = cost_so_far.get(
+                    current_pos) + self.distance(next_pos, current_pos)
+                if next_pos not in cost_so_far or new_cost &lt; cost_so_far.get(next_pos):
+                    cost_so_far[next_pos] = new_cost
+                    priority = new_cost + self.distance(next_pos, goal)
+                    heapq.heappush(frontier, (priority, next_pos))
+                    came_from[next_pos] = current_pos
+        if current_pos == goal and start is not None and goal is not None:
+            ret = self.format_path(path, came_from, grid_map, start, goal)
+            return ret
+        else:
+            return None
+
+    def closest_frontier(self, start, frontiers, gridmap_processed):
+        &#39;&#39;&#39;
+        Return the closest frontier from the list of frontiers
+        &#39;&#39;&#39;
+        shortest_path = np.inf
+        ret_frontier = None
+        for frontier in frontiers:
+            path = self.a_star(gridmap_processed, start, frontier)
+            if path is not None and len(path.poses) &lt; shortest_path:
+                shortest_path = len(path.poses)
+                ret_frontier = frontier
+        return ret_frontier
+
+    def remove_frontiers(self, gridmap, frontiers):
+        if frontiers is not None:
+            for frontier in frontiers: #remove frontiers which are in obstacle
+                if type(frontier) != Pose:
+                    frontier = frontier[0] #  where it contains also the information gain
+                (x,y) = self.world_to_map(frontier.position,gridmap)
+                if gridmap.data[y,x] == 1:
+                    if type(frontiers[0]) == Pose:
+                        frontiers = list(filter(lambda x: x != frontier, frontiers))
+                    else:
+                        frontiers = [item for item in frontiers if item[0] != frontier]
+                        
+        return frontiers
+
+    def bresenham_line(self, start, goal):
+        &#34;&#34;&#34;
+        Bresenham&#39;s line algorithm
+
+        Args:
+            start: (float64, float64) - start coordinate
+            goal: (float64, float64) - goal coordinate
+        Returns:
+            (float64, float64) - interlying points between the start and goal coordinate
+        &#34;&#34;&#34;
+        (x0, y0) = start
+        (x1, y1) = goal
+        line = []
+        dx = abs(x1 - x0)
+        dy = abs(y1 - y0)
+        x, y = x0, y0
+        sx = -1 if x0 &gt; x1 else 1
+        sy = -1 if y0 &gt; y1 else 1
+        if dx &gt; dy:
+            err = dx / 2.0
+            while x != x1:
+                line.append((x,y))
+                err -= dy
+                if err &lt; 0:
+                    y += sy
+                    err += dx
+                x += sx
+        else:
+            err = dy / 2.0
+            while y != y1:
+                line.append((x,y))
+                err -= dx
+                if err &lt; 0:
+                    x += sx
+                    err += dy
+                y += sy
+        x = goal[0]
+        y = goal[1]
+        return line
+
+    def plot_graph(self, grid_map):
+        &#34;&#34;&#34;
+        Plot the graphs in case error occurs and we want to see the map
+        &#34;&#34;&#34;
+        data = grid_map.data.reshape(grid_map.height, grid_map.width)
+        _, ax = plt.subplots()
+        plt.imshow(data, cmap=&#39;viridis&#39;)
+        ax = plt.gca()
+        ax.set_ylim(ax.get_ylim()[::-1])
+        plt.colorbar()
+        plt.xlabel(&#39;x[m]&#39;)
+        plt.ylabel(&#39;y[m]&#39;)
+        plt.title(&#34;pixel_plot&#34;)
+        plt.show()
+
+    def fuse_laser_scan(self, grid_map, laser_scan, odometry):
+        &#34;&#34;&#34;
+        Method to fuse the laser scan data sampled by the robot with a given 
+        odometry into the probabilistic occupancy grid map
+
+        Args:
+            grid_map_update: OccupancyGrid - gridmap to fuse te laser scan to
+            laser_scan: LaserScan - laser scan perceived by the robot
+            odometry: Odometry - perceived odometry of the robot
+        Returns:
+            grid_map_update: OccupancyGrid - gridmap updated with the laser scan data
+        &#34;&#34;&#34;
+        grid_map_update = copy.deepcopy(grid_map)
+        if laser_scan is not None and odometry is not None:
+            laserscan_points = laser_scan.distances
+            alpha_min = laser_scan.angle_min
+            odometry_R = odometry.pose.orientation.to_R()
+            odometry_x = odometry.pose.position.x
+            odometry_y = odometry.pose.position.y
+            free_points = list()
+            occupied_points = list()
+            for laserscan_sector, laserscan_sector_value in enumerate(laserscan_points):
+                &#39;&#39;&#39;
+                STEP 1: Project the laser scan points to x,y plane with respect to the robot heading
+                &#39;&#39;&#39;
+                if laserscan_sector_value &lt; laser_scan.range_min or laserscan_sector_value &gt; laser_scan.range_max:
+                    continue # ignore invalid laserscan values
+                theta_i = alpha_min + laserscan_sector*laser_scan.angle_increment
+                point_x = laserscan_sector_value*np.cos(theta_i)
+                point_y = laserscan_sector_value*np.sin(theta_i)
+
+                &#39;&#39;&#39;
+                STEP 2: Compensate for the robot odometry
+                &#39;&#39;&#39;
+                point_normalized = np.transpose(
+                    np.array([point_x, point_y, 1]))
+                point_x_global, point_y_global, _ = odometry_R @ point_normalized + \
+                    np.array([odometry_x, odometry_y, 1])
+
+                &#39;&#39;&#39;
+                STEP 3: Transfer the points from the world coordinates to the map coordinates
+                &#39;&#39;&#39;
+                point_x_map, point_y_map = self.world_to_map(
+                    [point_x_global, point_y_global], grid_map_update)
+
+                &#39;&#39;&#39;
+                STEP 4: Raytrace individual scanned points
+                &#39;&#39;&#39;
+                odometry_x_map, odometry_y_map = self.world_to_map(
+                    [odometry_x, odometry_y], grid_map_update)
+                pts = self.bresenham_line(
+                    (odometry_x_map, odometry_y_map), (point_x_map, point_y_map))
+                free_points.extend(pts)
+                occupied_points.append((point_x_map, point_y_map))
+
+            &#39;&#39;&#39;
+            STEP 5: Dynamically resize the map
+            &#39;&#39;&#39;
+            data = grid_map_update.data.reshape(grid_map_update.height, grid_map_update.width)
+            for (x, y) in [(odometry_x_map,odometry_y_map)] + occupied_points: # for the first loop we need to resize the map based on robot
+                if x &lt; 0 or y &lt; 0 or data is None or x &gt;= grid_map.width or y &gt;= grid_map.height:
+                    x_shift = min(0, x)     # negative coordinate -&gt; we need to shift the origin
+                    y_shift = min(0, y)
+                    new_height = max(grid_map.height if data is not None else 0, y+1) - y_shift
+                    new_width = max(grid_map.width if data is not None else 0, x+1) - x_shift
+                    new_origin = np.array([grid_map.origin.position.x, grid_map.origin.position.y]) + np.array([x_shift, y_shift]) * grid_map.resolution
+                    new_data = 0.5 * np.ones((new_height, new_width))
+                    if data is not None:
+                        new_data[-y_shift:-y_shift+grid_map.height, -x_shift:-x_shift+grid_map.width] = data
+                    grid_map_update.width = new_width
+                    grid_map_update.height = new_height
+                    grid_map_update.origin = Pose(Vector3(new_origin[0], new_origin[1], 0.0), Quaternion(1, 0, 0, 0))
+                    grid_map_update.data = new_data.flatten()
+                    return self.fuse_laser_scan(grid_map_update, laser_scan, odometry)
+
+            &#39;&#39;&#39;
+            STEP 6: Update the occupancy grid using the Bayesian update and the simplified laser scan sensor model
+            &#39;&#39;&#39;
+            for (x, y) in occupied_points:
+                data[y, x] = self.update_occupied(data[y, x])
+            for (x, y) in free_points:
+                data[y, x] = self.update_free(data[y, x])
+            grid_map_update.data = data.flatten() 
+        return grid_map_update
+
+    def grow_obstacles(self, grid_map, robot_size):
+        &#34;&#34;&#34; Method to grow the obstacles to take into account the robot embodiment
+        Args:
+            grid_map: OccupancyGrid - gridmap for obstacle growing
+            robot_size: float - size of the robot
+        Returns:
+            grid_map_grow: OccupancyGrid - gridmap with considered robot body embodiment
+        Notes:
+            use obstacle growing only on obstacles, not uknown areas
+            filter all unknown areas moved to the end of the function
+        &#34;&#34;&#34;
+
+        grid_map_grow = copy.deepcopy(grid_map)
+        grid_map_grow.data[grid_map.data &gt; 0.5] = 1  # obstacles
+        grid_map_grow.data[grid_map.data &lt;= 0.5] = 0  # free area
+        kernel_size = round(robot_size/grid_map_grow.resolution)  # must be even
+        r = round(kernel_size) # filter cells close to obstacles
+        kernel = np.fromfunction(lambda x, y: ((x-r)**2 + (y-r)**2 &lt; r**2)*1, (2*r+1, 2*r+1), dtype=int).astype(np.uint8)
+        grid_map_grow.data = ndimg.convolve(grid_map_grow.data, kernel)
+        grid_map_grow.data[grid_map_grow.data &gt; 1] = 1
+        grid_map_grow.data[grid_map.data == 0.5] = 1  # unknown area
+        return grid_map_grow
+
+    def simplify_path(self, grid_map, path):
+        &#34;&#34;&#34;
+        Method to simplify the found path on the grid
+        Founds the connected segments and remove unnecessary points
+
+        Args:
+            grid_map: OccupancyGrid - gridmap for obstacle growing
+            path: Path - path to be simplified
+        Returns:
+            path_simple: Path - simplified path
+        &#34;&#34;&#34;
+        if grid_map == None or path == None or len(path.poses)==0:
+            return None
+        path_simple = Path()
+        path_simple.poses.append(path.poses[0]) # add the start pose
+        i = 1
+        while path_simple.poses[-1] != path.poses[-1]: #while goal not reached
+            last_pose = path_simple.poses[-1] #last pose without collision
+            for pose in path.poses[i::]:   
+                end = path_simple.poses[-1]            
+                bres_line = self.bresenham_line(self.world_to_map(end.position,grid_map),
+                                                self.world_to_map(pose.position,grid_map))    
+                
+                collision = False
+                for (x, y) in bres_line: #check for collision
+                    if grid_map.data[y,x] != 0: # this is correct!
+                        collision = True
+                if collision == False:
+                    last_pose = pose #update last_pose
+                    i += 1
+                    if pose == path.poses[-1]:  # goal is reached
+                        path_simple.poses.append(last_pose)
+                        break
+                else:
+                    path_simple.poses.append(last_pose)
+                    break
+            if len(bres_line)==1 and pose != path.poses[-1]:
+                return None # looping scenario, frontier too close and inside obstacle???
+        path_simple.poses.pop(0) # remove the start pose
+        return path_simple
+
+    def find_free_edge_frontiers(self, grid_map):
+        &#34;&#34;&#34;
+        Method to find the free-edge frontiers (edge clusters between the free and unknown areas)
+
+        Args:
+            grid_map: OccupancyGrid - gridmap of the environment
+        Returns:
+            pose_list: Pose[] - list of selected frontiers
+        &#34;&#34;&#34;
+
+        data = copy.deepcopy(grid_map.data)
+        data[data == 0.5] = 10
+        mask = np.array([[1, 1, 1], [1, 0, 1], [1, 1, 1]])
+        data_c = ndimg.convolve(data, mask, mode=&#39;constant&#39;, cval=0.0)
+
+        # Format result
+        for (y, val1) in enumerate(data_c):
+            for (x, val2) in enumerate(val1):
+                if grid_map.data.reshape(grid_map.height, grid_map.width)[(y, x)] &lt; 0.5 and val2 &lt; 50 and val2 &gt;= 10:
+                    data[(y, x)] = 1
+                else:
+                    data[(y, x)] = 0
+        labeled_image, num_labels = skm.label(
+            data, connectivity=2, return_num=True)
+
+        # Final Labeling
+        cluster = {}
+        for label in range(1, num_labels+1):
+            cluster[label] = []
+        for x in range(0, labeled_image.shape[1]):
+            for y in range(0, labeled_image.shape[0]):
+
+                label = labeled_image[y, x]
+                if label != 0:
+                    cluster[label].append((x, y))
+        pose_list = []
+        for label, items in cluster.items():
+            &#34;&#34;&#34;
+            f1 Implementation
+            &#34;&#34;&#34;
+            # centroid = (0, 0)
+            # for item in items:
+            #     centroid = (centroid[0]+item[0], centroid[1]+item[1])
+            # centroid = (centroid[0]/len(items), centroid[1]/len(items))
+            # pose = self.map_to_world(
+            #     [centroid[0], centroid[1]], grid_map)
+            # pose_list.append(pose)
+
+            &#34;&#34;&#34;
+            f2 Implementation
+            &#34;&#34;&#34;
+            f = len(items)
+            D = LASER_MAX_RANGE / grid_map.resolution
+            n_r = np.floor(f/D + 0.5) +1
+            kmeans = KMeans(n_clusters=int(n_r), max_iter=70, tol=1e-2, n_init=1).fit(items)
+            for centroid in kmeans.cluster_centers_:
+                pose_list.append(self.map_to_world(centroid, grid_map))
+        return pose_list
+
+    def find_inf_frontiers(self, grid_map):
+        &#34;&#34;&#34;
+        f3 Implementation
+        Method to find the information frontiers (frontiers with the highest information gain)
+        Args:
+            grid_map: OccupancyGrid - gridmap of the environment
+        Returns:
+            pose_list: Pose[] - list of selected frontiers
+        &#34;&#34;&#34;
+
+        # Calculate entropy of each cell in the grid
+        H = grid_map.data.copy()
+        for row,row_val in enumerate(H):
+            for col,col_val in enumerate(row_val): 
+                p = H[row][col]
+                if p == 0 or p == 1:
+                    H[row][col] = 0
+                else:
+                    H[row][col] = -p * np.log(p) - (1-p) * np.log(1-p)
+
+        # Find free frontiers
+        frontiers = self.find_free_edge_frontiers(grid_map)
+
+        # Calculate information gain of each frontier
+        frontiers_weighted = []
+        beams = 8
+        for frontier in frontiers:
+            frontier_cell = self.world_to_map(frontier.position, grid_map)
+
+            # Calculate information gain along 8 beams from the frontier
+            I_action = 0.0
+            beam = Pose()
+            for i in range(beams):
+                beam.position.y = frontier.position.y + math.sin(i * math.pi/beams) * LASER_MAX_RANGE
+                beam.position.x = frontier.position.x + math.cos(i * math.pi/beams) * LASER_MAX_RANGE
+                beam_end_coord = self.world_to_map(beam.position, grid_map)
+                beam_line = self.bresenham_line(frontier_cell, beam_end_coord)
+
+                # Accumulate information gain along the beam
+                for x, y in beam_line:
+                    if (x &lt; 0 or x &gt;= grid_map.width or y &lt; 0 or y &gt;= grid_map.height) or grid_map.data[y, x] == 1:
+                        break    # beam is out of bounds or hits an obstacle
+                    I_action += H[y, x]
+            frontiers_weighted.append((frontier, I_action))
+
+        return frontiers_weighted</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="HexapodExplorer.HexapodExplorer.a_star"><code class="name flex">
+<span>def <span class="ident">a_star</span></span>(<span>self, grid_map, start_pose, goal_pose)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Generates the path. The method returns a list of coordinates for the
+path. It must start with the starting position and end at the goal
+position [(x1, y1), (x2, y2), … ]. If there is no path, it should
+return None.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def a_star(self, grid_map, start_pose, goal_pose):
+    &#39;&#39;&#39;
+    Generates the path. The method returns a list of coordinates for the
+    path. It must start with the starting position and end at the goal
+    position [(x1, y1), (x2, y2), … ]. If there is no path, it should
+    return None.
+    &#39;&#39;&#39;
+    path = Path()
+    frontier = list()
+    start = self.world_to_map(start_pose.position, grid_map)
+    goal = self.world_to_map(goal_pose.position, grid_map)
+    heapq.heappush(frontier, (0, start))
+    cost_so_far = dict() # {(x1,y1):cost1, (x2,y2):cost2, ..}
+    cost_so_far[start] = 0
+    came_from = dict()   # {(0, 0):None, (1, 2):(0, 1), ...}
+    came_from[start] = None
+    while frontier: # while not empty:
+        current_pos = heapq.heappop(frontier)[1]
+        if current_pos == goal:
+            break
+        neighbors = self.neighbors_finder(current_pos, grid_map)
+
+        for next_pos in neighbors:
+            new_cost = cost_so_far.get(
+                current_pos) + self.distance(next_pos, current_pos)
+            if next_pos not in cost_so_far or new_cost &lt; cost_so_far.get(next_pos):
+                cost_so_far[next_pos] = new_cost
+                priority = new_cost + self.distance(next_pos, goal)
+                heapq.heappush(frontier, (priority, next_pos))
+                came_from[next_pos] = current_pos
+    if current_pos == goal and start is not None and goal is not None:
+        ret = self.format_path(path, came_from, grid_map, start, goal)
+        return ret
+    else:
+        return None</code></pre>
+</details>
+</dd>
+<dt id="HexapodExplorer.HexapodExplorer.bresenham_line"><code class="name flex">
+<span>def <span class="ident">bresenham_line</span></span>(<span>self, start, goal)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Bresenham's line algorithm</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>start</code></strong></dt>
+<dd>(float64, float64) - start coordinate</dd>
+<dt><strong><code>goal</code></strong></dt>
+<dd>(float64, float64) - goal coordinate</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>(float64, float64) - interlying points between the start and goal coordinate</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def bresenham_line(self, start, goal):
+    &#34;&#34;&#34;
+    Bresenham&#39;s line algorithm
+
+    Args:
+        start: (float64, float64) - start coordinate
+        goal: (float64, float64) - goal coordinate
+    Returns:
+        (float64, float64) - interlying points between the start and goal coordinate
+    &#34;&#34;&#34;
+    (x0, y0) = start
+    (x1, y1) = goal
+    line = []
+    dx = abs(x1 - x0)
+    dy = abs(y1 - y0)
+    x, y = x0, y0
+    sx = -1 if x0 &gt; x1 else 1
+    sy = -1 if y0 &gt; y1 else 1
+    if dx &gt; dy:
+        err = dx / 2.0
+        while x != x1:
+            line.append((x,y))
+            err -= dy
+            if err &lt; 0:
+                y += sy
+                err += dx
+            x += sx
+    else:
+        err = dy / 2.0
+        while y != y1:
+            line.append((x,y))
+            err -= dx
+            if err &lt; 0:
+                x += sx
+                err += dy
+            y += sy
+    x = goal[0]
+    y = goal[1]
+    return line</code></pre>
+</details>
+</dd>
+<dt id="HexapodExplorer.HexapodExplorer.closest_frontier"><code class="name flex">
+<span>def <span class="ident">closest_frontier</span></span>(<span>self, start, frontiers, gridmap_processed)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Return the closest frontier from the list of frontiers</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def closest_frontier(self, start, frontiers, gridmap_processed):
+    &#39;&#39;&#39;
+    Return the closest frontier from the list of frontiers
+    &#39;&#39;&#39;
+    shortest_path = np.inf
+    ret_frontier = None
+    for frontier in frontiers:
+        path = self.a_star(gridmap_processed, start, frontier)
+        if path is not None and len(path.poses) &lt; shortest_path:
+            shortest_path = len(path.poses)
+            ret_frontier = frontier
+    return ret_frontier</code></pre>
+</details>
+</dd>
+<dt id="HexapodExplorer.HexapodExplorer.distance"><code class="name flex">
+<span>def <span class="ident">distance</span></span>(<span>self, start, end)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Return the distance from the point A to the point B</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def distance(self, start, end):
+    &#39;&#39;&#39;
+    Return the distance from the point A to the point B
+    &#39;&#39;&#39;
+    (x1, y1) = start
+    (x2, y2) = end
+    return math.sqrt(abs(x1 - x2)**2 + abs(y1 - y2)**2)</code></pre>
+</details>
+</dd>
+<dt id="HexapodExplorer.HexapodExplorer.find_free_edge_frontiers"><code class="name flex">
+<span>def <span class="ident">find_free_edge_frontiers</span></span>(<span>self, grid_map)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Method to find the free-edge frontiers (edge clusters between the free and unknown areas)</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>grid_map</code></strong></dt>
+<dd>OccupancyGrid - gridmap of the environment</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>pose_list</code></dt>
+<dd>Pose[] - list of selected frontiers</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def find_free_edge_frontiers(self, grid_map):
+    &#34;&#34;&#34;
+    Method to find the free-edge frontiers (edge clusters between the free and unknown areas)
+
+    Args:
+        grid_map: OccupancyGrid - gridmap of the environment
+    Returns:
+        pose_list: Pose[] - list of selected frontiers
+    &#34;&#34;&#34;
+
+    data = copy.deepcopy(grid_map.data)
+    data[data == 0.5] = 10
+    mask = np.array([[1, 1, 1], [1, 0, 1], [1, 1, 1]])
+    data_c = ndimg.convolve(data, mask, mode=&#39;constant&#39;, cval=0.0)
+
+    # Format result
+    for (y, val1) in enumerate(data_c):
+        for (x, val2) in enumerate(val1):
+            if grid_map.data.reshape(grid_map.height, grid_map.width)[(y, x)] &lt; 0.5 and val2 &lt; 50 and val2 &gt;= 10:
+                data[(y, x)] = 1
+            else:
+                data[(y, x)] = 0
+    labeled_image, num_labels = skm.label(
+        data, connectivity=2, return_num=True)
+
+    # Final Labeling
+    cluster = {}
+    for label in range(1, num_labels+1):
+        cluster[label] = []
+    for x in range(0, labeled_image.shape[1]):
+        for y in range(0, labeled_image.shape[0]):
+
+            label = labeled_image[y, x]
+            if label != 0:
+                cluster[label].append((x, y))
+    pose_list = []
+    for label, items in cluster.items():
+        &#34;&#34;&#34;
+        f1 Implementation
+        &#34;&#34;&#34;
+        # centroid = (0, 0)
+        # for item in items:
+        #     centroid = (centroid[0]+item[0], centroid[1]+item[1])
+        # centroid = (centroid[0]/len(items), centroid[1]/len(items))
+        # pose = self.map_to_world(
+        #     [centroid[0], centroid[1]], grid_map)
+        # pose_list.append(pose)
+
+        &#34;&#34;&#34;
+        f2 Implementation
+        &#34;&#34;&#34;
+        f = len(items)
+        D = LASER_MAX_RANGE / grid_map.resolution
+        n_r = np.floor(f/D + 0.5) +1
+        kmeans = KMeans(n_clusters=int(n_r), max_iter=70, tol=1e-2, n_init=1).fit(items)
+        for centroid in kmeans.cluster_centers_:
+            pose_list.append(self.map_to_world(centroid, grid_map))
+    return pose_list</code></pre>
+</details>
+</dd>
+<dt id="HexapodExplorer.HexapodExplorer.find_inf_frontiers"><code class="name flex">
+<span>def <span class="ident">find_inf_frontiers</span></span>(<span>self, grid_map)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>f3 Implementation
+Method to find the information frontiers (frontiers with the highest information gain)</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>grid_map</code></strong></dt>
+<dd>OccupancyGrid - gridmap of the environment</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>pose_list</code></dt>
+<dd>Pose[] - list of selected frontiers</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def find_inf_frontiers(self, grid_map):
+    &#34;&#34;&#34;
+    f3 Implementation
+    Method to find the information frontiers (frontiers with the highest information gain)
+    Args:
+        grid_map: OccupancyGrid - gridmap of the environment
+    Returns:
+        pose_list: Pose[] - list of selected frontiers
+    &#34;&#34;&#34;
+
+    # Calculate entropy of each cell in the grid
+    H = grid_map.data.copy()
+    for row,row_val in enumerate(H):
+        for col,col_val in enumerate(row_val): 
+            p = H[row][col]
+            if p == 0 or p == 1:
+                H[row][col] = 0
+            else:
+                H[row][col] = -p * np.log(p) - (1-p) * np.log(1-p)
+
+    # Find free frontiers
+    frontiers = self.find_free_edge_frontiers(grid_map)
+
+    # Calculate information gain of each frontier
+    frontiers_weighted = []
+    beams = 8
+    for frontier in frontiers:
+        frontier_cell = self.world_to_map(frontier.position, grid_map)
+
+        # Calculate information gain along 8 beams from the frontier
+        I_action = 0.0
+        beam = Pose()
+        for i in range(beams):
+            beam.position.y = frontier.position.y + math.sin(i * math.pi/beams) * LASER_MAX_RANGE
+            beam.position.x = frontier.position.x + math.cos(i * math.pi/beams) * LASER_MAX_RANGE
+            beam_end_coord = self.world_to_map(beam.position, grid_map)
+            beam_line = self.bresenham_line(frontier_cell, beam_end_coord)
+
+            # Accumulate information gain along the beam
+            for x, y in beam_line:
+                if (x &lt; 0 or x &gt;= grid_map.width or y &lt; 0 or y &gt;= grid_map.height) or grid_map.data[y, x] == 1:
+                    break    # beam is out of bounds or hits an obstacle
+                I_action += H[y, x]
+        frontiers_weighted.append((frontier, I_action))
+
+    return frontiers_weighted</code></pre>
+</details>
+</dd>
+<dt id="HexapodExplorer.HexapodExplorer.format_path"><code class="name flex">
+<span>def <span class="ident">format_path</span></span>(<span>self, path, came_from, grid_map, start, goal)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Return the path as requested in assignment as a list
+of positions[(x1, y1), (x2, y2), &hellip;] At the moment the
+path is stored as the dicionary with at the format {(pos1):(pos2),..}
+and if you want to find the final path, you have to go backward,
+in other words start at the goal and than ask, "how I get there" till
+we will not reach the starting point</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def format_path(self, path, came_from, grid_map, start, goal):
+    &#39;&#39;&#39;
+    Return the path as requested in assignment as a list
+    of positions[(x1, y1), (x2, y2), ...] At the moment the
+    path is stored as the dicionary with at the format {(pos1):(pos2),..}
+    and if you want to find the final path, you have to go backward,
+    in other words start at the goal and than ask, &#34;how I get there&#34; till
+    we will not reach the starting point
+    &#39;&#39;&#39;
+    path.poses.insert(0, self.map_to_world(
+        goal, grid_map))  # Add goal!!
+    coordinates = came_from.get(goal)
+    while coordinates != start:
+        pose = self.map_to_world(coordinates, grid_map)
+        coordinates = came_from.get(coordinates)
+        path.poses.insert(0, pose)
+    pose = self.map_to_world(coordinates, grid_map)
+    path.poses.insert(0, pose)  # Add start!!
+    return path</code></pre>
+</details>
+</dd>
+<dt id="HexapodExplorer.HexapodExplorer.fuse_laser_scan"><code class="name flex">
+<span>def <span class="ident">fuse_laser_scan</span></span>(<span>self, grid_map, laser_scan, odometry)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Method to fuse the laser scan data sampled by the robot with a given
+odometry into the probabilistic occupancy grid map</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>grid_map_update</code></strong></dt>
+<dd>OccupancyGrid - gridmap to fuse te laser scan to</dd>
+<dt><strong><code>laser_scan</code></strong></dt>
+<dd>LaserScan - laser scan perceived by the robot</dd>
+<dt><strong><code>odometry</code></strong></dt>
+<dd>Odometry - perceived odometry of the robot</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>grid_map_update</code></dt>
+<dd>OccupancyGrid - gridmap updated with the laser scan data</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def fuse_laser_scan(self, grid_map, laser_scan, odometry):
+    &#34;&#34;&#34;
+    Method to fuse the laser scan data sampled by the robot with a given 
+    odometry into the probabilistic occupancy grid map
+
+    Args:
+        grid_map_update: OccupancyGrid - gridmap to fuse te laser scan to
+        laser_scan: LaserScan - laser scan perceived by the robot
+        odometry: Odometry - perceived odometry of the robot
+    Returns:
+        grid_map_update: OccupancyGrid - gridmap updated with the laser scan data
+    &#34;&#34;&#34;
+    grid_map_update = copy.deepcopy(grid_map)
+    if laser_scan is not None and odometry is not None:
+        laserscan_points = laser_scan.distances
+        alpha_min = laser_scan.angle_min
+        odometry_R = odometry.pose.orientation.to_R()
+        odometry_x = odometry.pose.position.x
+        odometry_y = odometry.pose.position.y
+        free_points = list()
+        occupied_points = list()
+        for laserscan_sector, laserscan_sector_value in enumerate(laserscan_points):
+            &#39;&#39;&#39;
+            STEP 1: Project the laser scan points to x,y plane with respect to the robot heading
+            &#39;&#39;&#39;
+            if laserscan_sector_value &lt; laser_scan.range_min or laserscan_sector_value &gt; laser_scan.range_max:
+                continue # ignore invalid laserscan values
+            theta_i = alpha_min + laserscan_sector*laser_scan.angle_increment
+            point_x = laserscan_sector_value*np.cos(theta_i)
+            point_y = laserscan_sector_value*np.sin(theta_i)
+
+            &#39;&#39;&#39;
+            STEP 2: Compensate for the robot odometry
+            &#39;&#39;&#39;
+            point_normalized = np.transpose(
+                np.array([point_x, point_y, 1]))
+            point_x_global, point_y_global, _ = odometry_R @ point_normalized + \
+                np.array([odometry_x, odometry_y, 1])
+
+            &#39;&#39;&#39;
+            STEP 3: Transfer the points from the world coordinates to the map coordinates
+            &#39;&#39;&#39;
+            point_x_map, point_y_map = self.world_to_map(
+                [point_x_global, point_y_global], grid_map_update)
+
+            &#39;&#39;&#39;
+            STEP 4: Raytrace individual scanned points
+            &#39;&#39;&#39;
+            odometry_x_map, odometry_y_map = self.world_to_map(
+                [odometry_x, odometry_y], grid_map_update)
+            pts = self.bresenham_line(
+                (odometry_x_map, odometry_y_map), (point_x_map, point_y_map))
+            free_points.extend(pts)
+            occupied_points.append((point_x_map, point_y_map))
+
+        &#39;&#39;&#39;
+        STEP 5: Dynamically resize the map
+        &#39;&#39;&#39;
+        data = grid_map_update.data.reshape(grid_map_update.height, grid_map_update.width)
+        for (x, y) in [(odometry_x_map,odometry_y_map)] + occupied_points: # for the first loop we need to resize the map based on robot
+            if x &lt; 0 or y &lt; 0 or data is None or x &gt;= grid_map.width or y &gt;= grid_map.height:
+                x_shift = min(0, x)     # negative coordinate -&gt; we need to shift the origin
+                y_shift = min(0, y)
+                new_height = max(grid_map.height if data is not None else 0, y+1) - y_shift
+                new_width = max(grid_map.width if data is not None else 0, x+1) - x_shift
+                new_origin = np.array([grid_map.origin.position.x, grid_map.origin.position.y]) + np.array([x_shift, y_shift]) * grid_map.resolution
+                new_data = 0.5 * np.ones((new_height, new_width))
+                if data is not None:
+                    new_data[-y_shift:-y_shift+grid_map.height, -x_shift:-x_shift+grid_map.width] = data
+                grid_map_update.width = new_width
+                grid_map_update.height = new_height
+                grid_map_update.origin = Pose(Vector3(new_origin[0], new_origin[1], 0.0), Quaternion(1, 0, 0, 0))
+                grid_map_update.data = new_data.flatten()
+                return self.fuse_laser_scan(grid_map_update, laser_scan, odometry)
+
+        &#39;&#39;&#39;
+        STEP 6: Update the occupancy grid using the Bayesian update and the simplified laser scan sensor model
+        &#39;&#39;&#39;
+        for (x, y) in occupied_points:
+            data[y, x] = self.update_occupied(data[y, x])
+        for (x, y) in free_points:
+            data[y, x] = self.update_free(data[y, x])
+        grid_map_update.data = data.flatten() 
+    return grid_map_update</code></pre>
+</details>
+</dd>
+<dt id="HexapodExplorer.HexapodExplorer.grow_obstacles"><code class="name flex">
+<span>def <span class="ident">grow_obstacles</span></span>(<span>self, grid_map, robot_size)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Method to grow the obstacles to take into account the robot embodiment</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>grid_map</code></strong></dt>
+<dd>OccupancyGrid - gridmap for obstacle growing</dd>
+<dt><strong><code>robot_size</code></strong></dt>
+<dd>float - size of the robot</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>grid_map_grow</code></dt>
+<dd>OccupancyGrid - gridmap with considered robot body embodiment</dd>
+</dl>
+<h2 id="notes">Notes</h2>
+<p>use obstacle growing only on obstacles, not uknown areas
+filter all unknown areas moved to the end of the function</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def grow_obstacles(self, grid_map, robot_size):
+    &#34;&#34;&#34; Method to grow the obstacles to take into account the robot embodiment
+    Args:
+        grid_map: OccupancyGrid - gridmap for obstacle growing
+        robot_size: float - size of the robot
+    Returns:
+        grid_map_grow: OccupancyGrid - gridmap with considered robot body embodiment
+    Notes:
+        use obstacle growing only on obstacles, not uknown areas
+        filter all unknown areas moved to the end of the function
+    &#34;&#34;&#34;
+
+    grid_map_grow = copy.deepcopy(grid_map)
+    grid_map_grow.data[grid_map.data &gt; 0.5] = 1  # obstacles
+    grid_map_grow.data[grid_map.data &lt;= 0.5] = 0  # free area
+    kernel_size = round(robot_size/grid_map_grow.resolution)  # must be even
+    r = round(kernel_size) # filter cells close to obstacles
+    kernel = np.fromfunction(lambda x, y: ((x-r)**2 + (y-r)**2 &lt; r**2)*1, (2*r+1, 2*r+1), dtype=int).astype(np.uint8)
+    grid_map_grow.data = ndimg.convolve(grid_map_grow.data, kernel)
+    grid_map_grow.data[grid_map_grow.data &gt; 1] = 1
+    grid_map_grow.data[grid_map.data == 0.5] = 1  # unknown area
+    return grid_map_grow</code></pre>
+</details>
+</dd>
+<dt id="HexapodExplorer.HexapodExplorer.map_to_world"><code class="name flex">
+<span>def <span class="ident">map_to_world</span></span>(<span>self, coordinates, grid_map)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Return the pose from the map coordinates</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def map_to_world(self, coordinates, grid_map):
+    &#39;&#39;&#39;
+    Return the pose from the map coordinates
+    &#39;&#39;&#39;
+    pose = Pose()
+    pose.position.x = np.round(coordinates[0] * grid_map.resolution+grid_map.origin.position.x,decimals=3)
+    pose.position.y = np.round(coordinates[1] * grid_map.resolution+grid_map.origin.position.y,decimals=3)
+    return pose</code></pre>
+</details>
+</dd>
+<dt id="HexapodExplorer.HexapodExplorer.neighbors_finder"><code class="name flex">
+<span>def <span class="ident">neighbors_finder</span></span>(<span>self, current_pos, grid_map)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Return the list of the neighbors of the current position
+return neighbors = [[(x1, y1), [(x2, y2), cost], &hellip; ]</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def neighbors_finder(self, current_pos, grid_map):
+    &#39;&#39;&#39;
+    Return the list of the neighbors of the current position
+    return neighbors = [[(x1, y1), [(x2, y2), cost], ... ]
+    &#39;&#39;&#39;
+    neighbors = []
+    (x, y) = current_pos
+    if x==0 or y==0 or x==grid_map.width-1 or y==grid_map.width-1 or x==grid_map.height-1 or y==grid_map.height-1:
+        return []
+    for i in range(-1, 2):
+        for j in range(-1, 2):
+            if (i,j) != (0, 0) and grid_map.data[y + j, x + i] == 0:
+                neighbors.append((int(x + i), int(y + j))) #not on the edge
+    return neighbors</code></pre>
+</details>
+</dd>
+<dt id="HexapodExplorer.HexapodExplorer.plot_graph"><code class="name flex">
+<span>def <span class="ident">plot_graph</span></span>(<span>self, grid_map)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Plot the graphs in case error occurs and we want to see the map</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def plot_graph(self, grid_map):
+    &#34;&#34;&#34;
+    Plot the graphs in case error occurs and we want to see the map
+    &#34;&#34;&#34;
+    data = grid_map.data.reshape(grid_map.height, grid_map.width)
+    _, ax = plt.subplots()
+    plt.imshow(data, cmap=&#39;viridis&#39;)
+    ax = plt.gca()
+    ax.set_ylim(ax.get_ylim()[::-1])
+    plt.colorbar()
+    plt.xlabel(&#39;x[m]&#39;)
+    plt.ylabel(&#39;y[m]&#39;)
+    plt.title(&#34;pixel_plot&#34;)
+    plt.show()</code></pre>
+</details>
+</dd>
+<dt id="HexapodExplorer.HexapodExplorer.print_path"><code class="name flex">
+<span>def <span class="ident">print_path</span></span>(<span>self, path)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Method to print the path point by point</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def print_path(self, path):
+    &#34;&#34;&#34;
+    Method to print the path point by point
+    &#34;&#34;&#34;
+    if path is not None:
+        if len(path.poses)==0:
+            print(&#34;Path is empty&#34;)
+        for i, pose in enumerate(path.poses):
+            print(&#34;Point&#34;,i,&#34;:&#34;,pose.position.x,pose.position.y)
+    else:
+        print(&#34;Path is None&#34;)</code></pre>
+</details>
+</dd>
+<dt id="HexapodExplorer.HexapodExplorer.remove_frontiers"><code class="name flex">
+<span>def <span class="ident">remove_frontiers</span></span>(<span>self, gridmap, frontiers)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def remove_frontiers(self, gridmap, frontiers):
+    if frontiers is not None:
+        for frontier in frontiers: #remove frontiers which are in obstacle
+            if type(frontier) != Pose:
+                frontier = frontier[0] #  where it contains also the information gain
+            (x,y) = self.world_to_map(frontier.position,gridmap)
+            if gridmap.data[y,x] == 1:
+                if type(frontiers[0]) == Pose:
+                    frontiers = list(filter(lambda x: x != frontier, frontiers))
+                else:
+                    frontiers = [item for item in frontiers if item[0] != frontier]
+                    
+    return frontiers</code></pre>
+</details>
+</dd>
+<dt id="HexapodExplorer.HexapodExplorer.simplify_path"><code class="name flex">
+<span>def <span class="ident">simplify_path</span></span>(<span>self, grid_map, path)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Method to simplify the found path on the grid
+Founds the connected segments and remove unnecessary points</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>grid_map</code></strong></dt>
+<dd>OccupancyGrid - gridmap for obstacle growing</dd>
+<dt><strong><code>path</code></strong></dt>
+<dd>Path - path to be simplified</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>path_simple</code></dt>
+<dd>Path - simplified path</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def simplify_path(self, grid_map, path):
+    &#34;&#34;&#34;
+    Method to simplify the found path on the grid
+    Founds the connected segments and remove unnecessary points
+
+    Args:
+        grid_map: OccupancyGrid - gridmap for obstacle growing
+        path: Path - path to be simplified
+    Returns:
+        path_simple: Path - simplified path
+    &#34;&#34;&#34;
+    if grid_map == None or path == None or len(path.poses)==0:
+        return None
+    path_simple = Path()
+    path_simple.poses.append(path.poses[0]) # add the start pose
+    i = 1
+    while path_simple.poses[-1] != path.poses[-1]: #while goal not reached
+        last_pose = path_simple.poses[-1] #last pose without collision
+        for pose in path.poses[i::]:   
+            end = path_simple.poses[-1]            
+            bres_line = self.bresenham_line(self.world_to_map(end.position,grid_map),
+                                            self.world_to_map(pose.position,grid_map))    
+            
+            collision = False
+            for (x, y) in bres_line: #check for collision
+                if grid_map.data[y,x] != 0: # this is correct!
+                    collision = True
+            if collision == False:
+                last_pose = pose #update last_pose
+                i += 1
+                if pose == path.poses[-1]:  # goal is reached
+                    path_simple.poses.append(last_pose)
+                    break
+            else:
+                path_simple.poses.append(last_pose)
+                break
+        if len(bres_line)==1 and pose != path.poses[-1]:
+            return None # looping scenario, frontier too close and inside obstacle???
+    path_simple.poses.pop(0) # remove the start pose
+    return path_simple</code></pre>
+</details>
+</dd>
+<dt id="HexapodExplorer.HexapodExplorer.update_free"><code class="name flex">
+<span>def <span class="ident">update_free</span></span>(<span>self, P_mi)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Method to calculate the Bayesian update of the free cell with the current occupancy probability value P_mi </p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>P_mi</code></strong></dt>
+<dd>float64 - current probability of the cell being occupied</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>p_mi</code></dt>
+<dd>float64 - updated probability of the cell being occupied</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def update_free(self, P_mi):
+    &#34;&#34;&#34;
+    Method to calculate the Bayesian update of the free cell with the current occupancy probability value P_mi 
+
+    Args:
+        P_mi: float64 - current probability of the cell being occupied
+    Returns:
+        p_mi: float64 - updated probability of the cell being occupied
+    &#34;&#34;&#34;
+    s_z_occ = 0
+    s_z_free = 0.95  # to be sure that probability is never 0
+    p_z_mi_occ = (1+s_z_occ-s_z_free)/2
+    p_z_mi_free = 1-p_z_mi_occ
+    p_mi = (p_z_mi_occ*P_mi)/((p_z_mi_occ*P_mi)+(p_z_mi_free*(1-P_mi)))
+    return max(0.05, p_mi)  # never let p_mi get to 0</code></pre>
+</details>
+</dd>
+<dt id="HexapodExplorer.HexapodExplorer.update_occupied"><code class="name flex">
+<span>def <span class="ident">update_occupied</span></span>(<span>self, P_mi)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Method to calculate the Bayesian update of the occupied cell with the current occupancy probability value P_mi</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>P_mi</code></strong></dt>
+<dd>float64 - current probability of the cell being occupied</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>p_mi</code></dt>
+<dd>float64 - updated probability of the cell being occupied</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def update_occupied(self, P_mi):
+    &#34;&#34;&#34;
+    Method to calculate the Bayesian update of the occupied cell with the current occupancy probability value P_mi
+
+    Args:
+        P_mi: float64 - current probability of the cell being occupied
+    Returns:
+        p_mi: float64 - updated probability of the cell being occupied
+    &#34;&#34;&#34;
+    s_z_occ = 0.95  # to be sure that probability is never 1
+    s_z_free = 0
+    p_z_mi_occ = (1+s_z_occ-s_z_free)/2
+    p_z_mi_free = 1-p_z_mi_occ
+    p_mi = (p_z_mi_occ*P_mi)/((p_z_mi_occ*P_mi)+(p_z_mi_free*(1-P_mi)))
+    return min(p_mi, 0.95)  # never let p_mi get to 1</code></pre>
+</details>
+</dd>
+<dt id="HexapodExplorer.HexapodExplorer.world_to_map"><code class="name flex">
+<span>def <span class="ident">world_to_map</span></span>(<span>self, point, grid_map)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Return the coordinates of the point in the map from the pose</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def world_to_map(self, point, grid_map):
+    &#34;&#34;&#34;
+    Return the coordinates of the point in the map from the pose
+    &#34;&#34;&#34;
+    if type(point) == Vector3:
+        point = (point.x, point.y)
+    else:
+        point = (point[0], point[1]) #possible floating point error
+    map_origin = np.array([grid_map.origin.position.x, grid_map.origin.position.y])
+    res = (point - map_origin) / grid_map.resolution
+    return tuple(np.round(res).astype(int))   </code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="HexapodExplorer.PriorityQueue"><code class="flex name class">
+<span>class <span class="ident">PriorityQueue</span></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class PriorityQueue:
+    def __init__(self):
+        self.elements = []
+
+    def empty(self):
+        return len(self.elements) == 0
+
+    def put(self, item, priority):
+        heapq.heappush(self.elements, (priority, item))
+
+    def pop(self):
+        return heapq.heappop(self.elements)[1]
+
+    def top(self):
+        u = self.elements[0]
+        return u[1]
+
+    def topKey(self):
+        u = self.elements[0]
+        return u[0]
+
+    def contains(self, element):
+        ret = False
+        for item in self.elements:
+            if element == item[1]:
+                ret = True
+                break
+        return ret
+
+    def print_elements(self):
+        return self.elements
+
+    def remove(self, element):
+        i = 0
+        for item in self.elements:
+            if element == item[1]:
+                self.elements[i] = self.elements[-1]
+                self.elements.pop()
+                heapq.heapify(self.elements)
+                break
+            i += 1
+
+    def arg(self,value):
+        for item in self.elements:
+            for subitem in item[0]:
+                if value == subitem:
+                    return item[1]</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="HexapodExplorer.PriorityQueue.arg"><code class="name flex">
+<span>def <span class="ident">arg</span></span>(<span>self, value)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def arg(self,value):
+    for item in self.elements:
+        for subitem in item[0]:
+            if value == subitem:
+                return item[1]</code></pre>
+</details>
+</dd>
+<dt id="HexapodExplorer.PriorityQueue.contains"><code class="name flex">
+<span>def <span class="ident">contains</span></span>(<span>self, element)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def contains(self, element):
+    ret = False
+    for item in self.elements:
+        if element == item[1]:
+            ret = True
+            break
+    return ret</code></pre>
+</details>
+</dd>
+<dt id="HexapodExplorer.PriorityQueue.empty"><code class="name flex">
+<span>def <span class="ident">empty</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def empty(self):
+    return len(self.elements) == 0</code></pre>
+</details>
+</dd>
+<dt id="HexapodExplorer.PriorityQueue.pop"><code class="name flex">
+<span>def <span class="ident">pop</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def pop(self):
+    return heapq.heappop(self.elements)[1]</code></pre>
+</details>
+</dd>
+<dt id="HexapodExplorer.PriorityQueue.print_elements"><code class="name flex">
+<span>def <span class="ident">print_elements</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def print_elements(self):
+    return self.elements</code></pre>
+</details>
+</dd>
+<dt id="HexapodExplorer.PriorityQueue.put"><code class="name flex">
+<span>def <span class="ident">put</span></span>(<span>self, item, priority)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def put(self, item, priority):
+    heapq.heappush(self.elements, (priority, item))</code></pre>
+</details>
+</dd>
+<dt id="HexapodExplorer.PriorityQueue.remove"><code class="name flex">
+<span>def <span class="ident">remove</span></span>(<span>self, element)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def remove(self, element):
+    i = 0
+    for item in self.elements:
+        if element == item[1]:
+            self.elements[i] = self.elements[-1]
+            self.elements.pop()
+            heapq.heapify(self.elements)
+            break
+        i += 1</code></pre>
+</details>
+</dd>
+<dt id="HexapodExplorer.PriorityQueue.top"><code class="name flex">
+<span>def <span class="ident">top</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def top(self):
+    u = self.elements[0]
+    return u[1]</code></pre>
+</details>
+</dd>
+<dt id="HexapodExplorer.PriorityQueue.topKey"><code class="name flex">
+<span>def <span class="ident">topKey</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def topKey(self):
+    u = self.elements[0]
+    return u[0]</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="HexapodExplorer.HexapodExplorer" href="#HexapodExplorer.HexapodExplorer">HexapodExplorer</a></code></h4>
+<ul class="">
+<li><code><a title="HexapodExplorer.HexapodExplorer.a_star" href="#HexapodExplorer.HexapodExplorer.a_star">a_star</a></code></li>
+<li><code><a title="HexapodExplorer.HexapodExplorer.bresenham_line" href="#HexapodExplorer.HexapodExplorer.bresenham_line">bresenham_line</a></code></li>
+<li><code><a title="HexapodExplorer.HexapodExplorer.closest_frontier" href="#HexapodExplorer.HexapodExplorer.closest_frontier">closest_frontier</a></code></li>
+<li><code><a title="HexapodExplorer.HexapodExplorer.distance" href="#HexapodExplorer.HexapodExplorer.distance">distance</a></code></li>
+<li><code><a title="HexapodExplorer.HexapodExplorer.find_free_edge_frontiers" href="#HexapodExplorer.HexapodExplorer.find_free_edge_frontiers">find_free_edge_frontiers</a></code></li>
+<li><code><a title="HexapodExplorer.HexapodExplorer.find_inf_frontiers" href="#HexapodExplorer.HexapodExplorer.find_inf_frontiers">find_inf_frontiers</a></code></li>
+<li><code><a title="HexapodExplorer.HexapodExplorer.format_path" href="#HexapodExplorer.HexapodExplorer.format_path">format_path</a></code></li>
+<li><code><a title="HexapodExplorer.HexapodExplorer.fuse_laser_scan" href="#HexapodExplorer.HexapodExplorer.fuse_laser_scan">fuse_laser_scan</a></code></li>
+<li><code><a title="HexapodExplorer.HexapodExplorer.grow_obstacles" href="#HexapodExplorer.HexapodExplorer.grow_obstacles">grow_obstacles</a></code></li>
+<li><code><a title="HexapodExplorer.HexapodExplorer.map_to_world" href="#HexapodExplorer.HexapodExplorer.map_to_world">map_to_world</a></code></li>
+<li><code><a title="HexapodExplorer.HexapodExplorer.neighbors_finder" href="#HexapodExplorer.HexapodExplorer.neighbors_finder">neighbors_finder</a></code></li>
+<li><code><a title="HexapodExplorer.HexapodExplorer.plot_graph" href="#HexapodExplorer.HexapodExplorer.plot_graph">plot_graph</a></code></li>
+<li><code><a title="HexapodExplorer.HexapodExplorer.print_path" href="#HexapodExplorer.HexapodExplorer.print_path">print_path</a></code></li>
+<li><code><a title="HexapodExplorer.HexapodExplorer.remove_frontiers" href="#HexapodExplorer.HexapodExplorer.remove_frontiers">remove_frontiers</a></code></li>
+<li><code><a title="HexapodExplorer.HexapodExplorer.simplify_path" href="#HexapodExplorer.HexapodExplorer.simplify_path">simplify_path</a></code></li>
+<li><code><a title="HexapodExplorer.HexapodExplorer.update_free" href="#HexapodExplorer.HexapodExplorer.update_free">update_free</a></code></li>
+<li><code><a title="HexapodExplorer.HexapodExplorer.update_occupied" href="#HexapodExplorer.HexapodExplorer.update_occupied">update_occupied</a></code></li>
+<li><code><a title="HexapodExplorer.HexapodExplorer.world_to_map" href="#HexapodExplorer.HexapodExplorer.world_to_map">world_to_map</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="HexapodExplorer.PriorityQueue" href="#HexapodExplorer.PriorityQueue">PriorityQueue</a></code></h4>
+<ul class="two-column">
+<li><code><a title="HexapodExplorer.PriorityQueue.arg" href="#HexapodExplorer.PriorityQueue.arg">arg</a></code></li>
+<li><code><a title="HexapodExplorer.PriorityQueue.contains" href="#HexapodExplorer.PriorityQueue.contains">contains</a></code></li>
+<li><code><a title="HexapodExplorer.PriorityQueue.empty" href="#HexapodExplorer.PriorityQueue.empty">empty</a></code></li>
+<li><code><a title="HexapodExplorer.PriorityQueue.pop" href="#HexapodExplorer.PriorityQueue.pop">pop</a></code></li>
+<li><code><a title="HexapodExplorer.PriorityQueue.print_elements" href="#HexapodExplorer.PriorityQueue.print_elements">print_elements</a></code></li>
+<li><code><a title="HexapodExplorer.PriorityQueue.put" href="#HexapodExplorer.PriorityQueue.put">put</a></code></li>
+<li><code><a title="HexapodExplorer.PriorityQueue.remove" href="#HexapodExplorer.PriorityQueue.remove">remove</a></code></li>
+<li><code><a title="HexapodExplorer.PriorityQueue.top" href="#HexapodExplorer.PriorityQueue.top">top</a></code></li>
+<li><code><a title="HexapodExplorer.PriorityQueue.topKey" href="#HexapodExplorer.PriorityQueue.topKey">topKey</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>
