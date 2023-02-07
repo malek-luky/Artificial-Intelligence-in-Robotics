@@ -393,7 +393,7 @@ class HexapodExplorer:
             grid_map_update.data = data.flatten() 
         return grid_map_update
 
-    def grow_obstacles(self, grid_map, robot_size):
+    def grow_obstacles(self, grid_map, robot_size, robot_pos, radius):
         """ Method to grow the obstacles to take into account the robot embodiment
         Args:
             grid_map: OccupancyGrid - gridmap for obstacle growing
@@ -414,6 +414,8 @@ class HexapodExplorer:
         grid_map_grow.data = ndimg.convolve(grid_map_grow.data, kernel)
         grid_map_grow.data[grid_map_grow.data > 1] = 1
         grid_map_grow.data[grid_map.data == 0.5] = 1  # unknown area
+        x,y = robot_pos
+        grid_map_grow.data[y-radius:y+radius+1, x-radius:x+radius+1] = 0 # clear the area around robot
         return grid_map_grow
 
     def simplify_path(self, grid_map, path):

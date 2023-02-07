@@ -123,10 +123,13 @@ class Explorer:
             Obstacle growing: p1
             """
             time.sleep(THREAD_SLEEP)
+            odometry = self.robot.odometry_.pose
+            robot_pos = self.explor.world_to_map(odometry.position,self.gridmap)
+            radius = int((ROBOT_SIZE+EXTRA_PADDING)/self.gridmap.resolution)
             self.gridmap = self.explor.fuse_laser_scan(self.gridmap, self.robot.laser_scan_, self.robot.odometry_)
             self.gridmap.data = self.gridmap.data.reshape(self.gridmap.height, self.gridmap.width)
-            self.gridmap_processed = self.explor.grow_obstacles(self.gridmap, ROBOT_SIZE)
-            self.gridmap_astar = self.explor.grow_obstacles(self.gridmap, ROBOT_SIZE+0.13) # extra safety margin so we dont recalculate the path too often
+            self.gridmap_processed = self.explor.grow_obstacles(self.gridmap, ROBOT_SIZE, robot_pos, radius)
+            self.gridmap_astar = self.explor.grow_obstacles(self.gridmap, ROBOT_SIZE+EXTRA_PADDING, robot_pos, radius) # extra safety margin so we dont recalculate the path too often
         print(time.strftime("%H:%M:%S"),"Mapping thread terminated successfully!")
             
 

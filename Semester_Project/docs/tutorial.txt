@@ -2,3 +2,9 @@
 2) Create a new Python file: Create a new Python file in the same directory as the four HTML pages you want to merge.
 3) Write the code to merge the HTML pages: In the new Python file, write the following code to merge the HTML pages: (written in a merge script)
 4) Run the Python file: Run the new Python file to execute the code and merge the four HTML pages into a single file.
+
+COMANDS
+pdoc3 --html --output-dir docs Explorer.py hexapod_robot/HexapodController.py hexapod_robot/HexapodRobot.py hexapod_explorer/HexapodExplorer.py (creates seperate html)
+python3.8 merge_script.py
+
+
