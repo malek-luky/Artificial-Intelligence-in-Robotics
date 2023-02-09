@@ -1,6 +1,6 @@
 # Artificial Intelligence in Robotics
 
-This repository contains the code for a project on Artificial Intelligence in Robotics.
+This repository contains the code for a Semester project on Artificial Intelligence in Robotics.
 
 ## Setting up Coppelia Sim
 
@@ -22,5 +22,5 @@ This program was developed and tested on a WSL (Ubuntu 20.04) with Python 3.8.
 
 ## Credits
 
-This program was developed by Malek Luky. I would like to acknowledge the following sources for their help and inspiration:
+This program was developed by malek-luky. I would like to acknowledge the following sources for their help and inspiration:
 [Moodle UIR](https://cw.fel.cvut.cz/b221/courses/uir/hw/start)
