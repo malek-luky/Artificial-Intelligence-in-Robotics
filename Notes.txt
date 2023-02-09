@@ -12,6 +12,7 @@ python3 t2a_tspn.py
 SEMESTER PROJECT
 cd /mnt/c/Users/Lukas/OneDrive/UIR/Semester_Project/
 clear & python3.8 Explorer.py -j 10000 -m pretty_errors
+clear & python3.8 Explorer_Multi.py -j 10000 -m pretty_errors
 cd /mnt/c/Users/Lukas/OneDrive/UIR/ && git add .
 
 week1 - goto - used in trajectory following - hexapod_controller

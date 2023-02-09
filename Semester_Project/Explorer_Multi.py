@@ -25,7 +25,7 @@ import pretty_errors
 from lkh.invoke_LKH import solve_TSP
 
 # CHOSE THE SETUP
-planning = "p1" #p2/p3
+planning = "p3" #p2/p3
 
 
  
@@ -125,7 +125,7 @@ class Explorer:
             time.sleep(THREAD_SLEEP)
             odometry = self.robot.odometry_.pose
             robot_pos = self.explor.world_to_map(odometry.position,self.gridmap)
-            radius = int((ROBOT_SIZE+EXTRA_PADDING)/self.gridmap.resolution)
+            radius = int((ROBOT_SIZE+1.3*EXTRA_PADDING)/self.gridmap.resolution)
             self.__class__.gridmap = self.explor.fuse_laser_scan(self.gridmap, self.robot.laser_scan_, self.robot.odometry_)
             self.__class__.gridmap.data = self.gridmap.data.reshape(self.gridmap.height, self.gridmap.width)
             self.gridmap_processed = self.explor.grow_obstacles(self.gridmap, ROBOT_SIZE, robot_pos, radius)
@@ -287,7 +287,7 @@ if __name__ == "__main__":
     Initiaite robot and start threads
     """
     robot1 = Explorer("Petr ", robotID = 0, ) #space to match the the name length
-    robot2 = Explorer("Pavel",robotID = 1,)
+    robot2 = Explorer("Pavel", robotID = 1,)
     robot1.start()
     robot2.start()
     time.sleep(16*THREAD_SLEEP) #wait for everything to init
@@ -347,9 +347,9 @@ if __name__ == "__main__":
                 ax1.scatter(pose.position.x, pose.position.y,c='red', s=150, marker='x')
                 ax2.scatter(pose.position.x, pose.position.y,c='red', s=150, marker='x')
         if robot1.robot.odometry_.pose is not None: #robot
-            ax0.scatter(robot1.robot.odometry_.pose.position.x, robot1.robot.odometry_.pose.position.y,c='grey', s=150, marker='o')
-            ax1.scatter(robot1.robot.odometry_.pose.position.x, robot1.robot.odometry_.pose.position.y,c='grey', s=150, marker='o')
-            ax2.scatter(robot1.robot.odometry_.pose.position.x, robot1.robot.odometry_.pose.position.y,c='grey', s=150, marker='o')
+            ax0.scatter(robot1.robot.odometry_.pose.position.x, robot1.robot.odometry_.pose.position.y,c='grey', s=100, marker='o')
+            ax1.scatter(robot1.robot.odometry_.pose.position.x, robot1.robot.odometry_.pose.position.y,c='grey', s=100, marker='o')
+            ax2.scatter(robot1.robot.odometry_.pose.position.x, robot1.robot.odometry_.pose.position.y,c='grey', s=100, marker='o')
         if robot1.nav_goal is not None: #frontier
             ax0.scatter(robot1.nav_goal.position.x, robot1.nav_goal.position.y,c='black', s=150, marker='x')
             ax1.scatter(robot1.nav_goal.position.x, robot1.nav_goal.position.y,c='black', s=150, marker='x')
@@ -381,9 +381,9 @@ if __name__ == "__main__":
                 ax4.scatter(pose.position.x, pose.position.y,c='red', s=150, marker='x')
                 ax5.scatter(pose.position.x, pose.position.y,c='red', s=150, marker='x')
         if robot2.robot.odometry_.pose is not None: #robot
-            ax3.scatter(robot2.robot.odometry_.pose.position.x, robot2.robot.odometry_.pose.position.y,c='grey', s=150, marker='o')
-            ax4.scatter(robot2.robot.odometry_.pose.position.x, robot2.robot.odometry_.pose.position.y,c='grey', s=150, marker='o')
-            ax5.scatter(robot2.robot.odometry_.pose.position.x, robot2.robot.odometry_.pose.position.y,c='grey', s=150, marker='o')
+            ax3.scatter(robot2.robot.odometry_.pose.position.x, robot2.robot.odometry_.pose.position.y,c='grey', s=100, marker='o')
+            ax4.scatter(robot2.robot.odometry_.pose.position.x, robot2.robot.odometry_.pose.position.y,c='grey', s=100, marker='o')
+            ax5.scatter(robot2.robot.odometry_.pose.position.x, robot2.robot.odometry_.pose.position.y,c='grey', s=100, marker='o')
         if robot2.nav_goal is not None: #frontier
             ax3.scatter(robot2.nav_goal.position.x, robot2.nav_goal.position.y,c='black', s=150, marker='x')
             ax4.scatter(robot2.nav_goal.position.x, robot2.nav_goal.position.y,c='black', s=150, marker='x')

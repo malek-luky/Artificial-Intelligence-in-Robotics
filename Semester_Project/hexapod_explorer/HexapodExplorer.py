@@ -414,8 +414,13 @@ class HexapodExplorer:
         grid_map_grow.data = ndimg.convolve(grid_map_grow.data, kernel)
         grid_map_grow.data[grid_map_grow.data > 1] = 1
         grid_map_grow.data[grid_map.data == 0.5] = 1  # unknown area
+        # for row in range(grid_map.width):
+        #     for col in range(grid_map.height):
+        #         if self.distance((row,col),robot_pos) < radius:
+        #             grid_map_grow.data[col][row] = 0
         x,y = robot_pos
-        grid_map_grow.data[y-radius:y+radius+1, x-radius:x+radius+1] = 0 # clear the area around robot
+        grid_map_grow.data[y-radius:y+radius+1, x] = 0 # clear the area around robot horizontal line
+        grid_map_grow.data[y, x-radius:x+radius+1] = 0 # clear the area around robot vertical line
         return grid_map_grow
 
     def simplify_path(self, grid_map, path):
@@ -551,8 +556,8 @@ class HexapodExplorer:
             I_action = 0.0
             beam = Pose()
             for i in range(beams):
-                beam.position.y = frontier.position.y + math.sin(i * math.pi/beams) * LASER_MAX_RANGE
-                beam.position.x = frontier.position.x + math.cos(i * math.pi/beams) * LASER_MAX_RANGE
+                beam.position.y = frontier.position.y + math.sin(i * 2*math.pi/beams) * LASER_MAX_RANGE
+                beam.position.x = frontier.position.x + math.cos(i * 2*math.pi/beams) * LASER_MAX_RANGE
                 beam_end_coord = self.world_to_map(beam.position, grid_map)
                 beam_line = self.bresenham_line(frontier_cell, beam_end_coord)
 
