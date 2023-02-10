@@ -1,6 +1,6 @@
 # Artificial Intelligence in Robotics
 
-This repository contains the code for a project on Artificial Intelligence in Robotics.
+This repository holds the code for an Artificial Intelligence in Robotics project. Throughout the course, we developed an algorithm to enable multiple robots to explore and navigate an unknown environment using various techniques and approaches. Some were more straightforward than others.
 
 # Folder Strucure
 
